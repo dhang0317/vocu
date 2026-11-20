@@ -12,7 +12,6 @@ const NAV_ITEMS: Array<{
   icon: React.ComponentType<{ className?: string }>;
 }> = [
   { id: 'home', label: '今天', sublabel: 'Home', icon: Calendar },
-  { id: 'vocab', label: '單字', sublabel: 'Vocab', icon: BookMarked },
   { id: 'history', label: '記錄', sublabel: 'History', icon: History },
   { id: 'profile', label: '我', sublabel: 'Profile', icon: User },
 ];

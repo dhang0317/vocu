@@ -21,7 +21,6 @@ function VocuShell() {
       <main className="flex-1 md:pl-64">
         <div className="max-w-[850px] mx-auto px-4 sm:px-8 pt-7 pb-16">
           {activeTab === 'home' && <HomeTab />}
-          {activeTab === 'vocab' && <VocabTab />}
           {activeTab === 'history' && <HistoryTab />}
           {activeTab === 'profile' && <ProfileTab />}
         </div>
