@@ -173,7 +173,23 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
       if (Array.isArray(remote.wordSets)) setWordSets(remote.wordSets);
       if (Array.isArray(remote.words)) setWords(remote.words);
       if (Array.isArray(remote.practiceLogs)) setPracticeLogs(remote.practiceLogs);
-      if (Array.isArray(remote.quizBank)) setQuizBank(remote.quizBank);
+      if (Array.isArray(remote.quizBank)) {
+        const normalizedQuizzes = remote.quizBank.map((q) => {
+          const raw = q as unknown as Record<string, unknown>;
+          const t = String(raw.type || '').toLowerCase();
+          if (t === 'word_bank_cloze' || t === 'letter_hint_cloze' || t === 'multiple_choice_cloze') {
+            return q;
+          }
+          if (raw.passage && Array.isArray(raw.answers)) {
+            return { ...q, type: 'word_bank_cloze' as const };
+          }
+          if (Array.isArray(raw.options) && raw.options.length === 4) {
+            return { ...q, type: 'multiple_choice_cloze' as const };
+          }
+          return { ...q, type: 'letter_hint_cloze' as const };
+        });
+        setQuizBank(normalizedQuizzes as QuizItem[]);
+      }
       if (remote.settings) setSettings({ ...INITIAL_USER_SETTINGS, ...remote.settings });
       setTimeout(() => {
         isRemoteUpdateRef.current = false;
