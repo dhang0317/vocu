@@ -84,7 +84,7 @@ export function ProfileTab() {
 
   const handleExportJson = () => {
     const jsonStr = exportBackupJson();
-    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
