@@ -43,13 +43,16 @@ export function subscribeWorkspaceFromFirestore(
   );
 }
 
-export async function saveWorkspaceToFirestore(data: VocuWorkspaceDoc): Promise<boolean> {
+export async function saveWorkspaceToFirestore(
+  data: VocuWorkspaceDoc
+): Promise<{ ok: boolean; error?: string }> {
   try {
     const ref = doc(db, WORKSPACE_COLLECTION, DEFAULT_DOC_ID);
-    await setDoc(ref, data, { merge: true });
-    return true;
+    const cleanData = JSON.parse(JSON.stringify(data));
+    await setDoc(ref, cleanData, { merge: true });
+    return { ok: true };
   } catch (err) {
     console.error('Firestore save error:', err);
-    return false;
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }

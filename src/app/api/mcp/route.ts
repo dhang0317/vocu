@@ -357,11 +357,22 @@ export async function POST(req: NextRequest) {
           createdAt: new Date().toISOString(),
         };
 
-        await saveWorkspaceToFirestore({
+        const saveRes = await saveWorkspaceToFirestore({
           ...workspace,
           wordSets: [newSet, ...workspace.wordSets],
           updatedAt: new Date().toISOString(),
         });
+
+        if (!saveRes.ok) {
+          return NextResponse.json(
+            {
+              jsonrpc: '2.0',
+              id,
+              error: { code: -32603, message: `Firestore 寫入失敗: ${saveRes.error}` },
+            },
+            { status: 500, headers: CORS_HEADERS }
+          );
+        }
 
         return NextResponse.json(
           {
