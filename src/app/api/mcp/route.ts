@@ -14,7 +14,6 @@ import { analyzeWordPriority } from '@/lib/quizEngine';
 import { computeQuestionHash } from '@/lib/masking';
 import { QuizItem } from '@/types/vocu';
 
-export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
 const CORS_HEADERS = {
