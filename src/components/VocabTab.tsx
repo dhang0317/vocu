@@ -561,7 +561,7 @@ export function VocabTab() {
                           {quiz.passage}
                         </p>
                         <div className="flex flex-wrap gap-1.5 pt-1">
-                          {quiz.options.map((opt) => (
+                          {(quiz.options || []).map((opt) => (
                             <span
                               key={opt.letter}
                               className="text-[11px] px-2 py-0.5 rounded-md bg-[#0D110F] border border-white/10 text-zinc-300"
@@ -589,7 +589,7 @@ export function VocabTab() {
                           <span className="text-xs font-mono text-[#7CE3B3]">
                             {quiz.type === 'letter_hint_cloze'
                               ? `遮罩：${generateLetterHintMask(quiz.targetTerm)}`
-                              : `答案：${quiz.correctLabel}. ${quiz.targetTerm}`}
+                              : `答案：${quiz.correctLabel || ''}. ${quiz.targetTerm || ''}`}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">

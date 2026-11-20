@@ -45,7 +45,8 @@ export function maskWordToken(token: string): string {
   return `${prefix}${first}${underscores}${last}${suffix}`;
 }
 
-export function generateLetterHintMask(targetTerm: string): string {
+export function generateLetterHintMask(targetTerm: string | undefined | null): string {
+  if (!targetTerm || typeof targetTerm !== 'string') return '';
   return targetTerm
     .trim()
     .split(/\s+/)
