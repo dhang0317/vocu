@@ -21,6 +21,7 @@ import {
   subscribeWorkspaceFromFirestore,
   saveWorkspaceToFirestore,
 } from '@/lib/firestoreSync';
+import { computeQuestionHash } from '@/lib/masking';
 
 export type NavTab = 'home' | 'vocab' | 'history' | 'profile';
 
@@ -224,8 +225,14 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
             chineseHint = matchedWord.definition;
           }
 
+          const questionHash =
+            String(raw.questionHash || '').trim() ||
+            computeQuestionHash(String(raw.passage || sentence || raw.id || targetTerm));
+
+          const resolvedWordId = String(raw.wordId || matchedWord?.id || '');
+
           if (t === 'word_bank_cloze' || (raw.passage && Array.isArray(raw.answers))) {
-            return { ...raw, type: 'word_bank_cloze' as const };
+            return { ...raw, type: 'word_bank_cloze' as const, questionHash };
           }
           if (t === 'multiple_choice_cloze' || (Array.isArray(raw.options) && raw.options.length === 4)) {
             const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
@@ -257,20 +264,24 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
             return {
               ...raw,
               type: 'multiple_choice_cloze' as const,
+              wordId: resolvedWordId,
               sentence,
               targetTerm,
               options: normalizedOptions,
               correctLabel,
+              questionHash,
             };
           }
           return {
             ...raw,
             type: 'letter_hint_cloze' as const,
+            wordId: resolvedWordId,
             sentence,
             targetTerm,
             baseTerm: String(raw.baseTerm || targetTerm),
             pos: rawPos,
             chineseHint,
+            questionHash,
           };
         });
         setQuizBank(normalizedQuizzes as QuizItem[]);

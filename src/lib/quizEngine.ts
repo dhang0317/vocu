@@ -146,10 +146,11 @@ export function rankWordsForQuiz(
       const scoreB = b.word.wrongCount * settings.weaknessMultiplier - b.word.consecutiveCorrect;
       if (scoreB !== scoreA) return scoreB - scoreA;
     }
-    // 同為優先級 3 (久未複習)：依 lastSeenAt 由舊到新排序
+    // 同為優先級 3 (久未複習)：依 lastSeenAt 由舊到新排序，若皆未測驗則隨機輪替
     const timeA = a.word.lastSeenAt ? new Date(a.word.lastSeenAt).getTime() : 0;
     const timeB = b.word.lastSeenAt ? new Date(b.word.lastSeenAt).getTime() : 0;
-    return timeA - timeB;
+    if (timeA !== timeB) return timeA - timeB;
+    return Math.random() - 0.5;
   };
 
   activeCandidates.sort(sortFn);

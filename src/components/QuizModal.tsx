@@ -97,6 +97,7 @@ export function QuizModal() {
         ...lhSession,
       };
     }
+    // Only rebuild session when activeQuiz changes or user clicks "重新出題" (sessionSeed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeQuiz, sessionSeed]);
 
