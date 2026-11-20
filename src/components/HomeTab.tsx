@@ -133,23 +133,6 @@ export function HomeTab() {
             )}
           </p>
         </div>
-
-        {currentSetStats.weakness > 0 && (
-          <button
-            onClick={() =>
-              startQuiz({
-                setId: currentSet?.id || 'all',
-                questionType: 'letter_hint_cloze',
-                onlyWrongWords: true,
-                questionCount: Math.min(5, currentSetStats.weakness),
-              })
-            }
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F472B6]/15 hover:bg-[#F472B6]/25 border border-[#F472B6]/30 text-[#F472B6] text-xs font-semibold transition cursor-pointer self-start sm:self-auto"
-          >
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>發現 {currentSetStats.weakness} 個弱點字・一鍵特訓</span>
-          </button>
-        )}
       </header>
 
       {/* 2. 今日進度卡片 */}
@@ -276,62 +259,6 @@ export function HomeTab() {
             );
           })}
         </div>
-
-        {/* 當前單字集的動態出題權重預覽 */}
-        {currentSet && (
-          <div className="p-4 rounded-xl bg-[#0D110F] border border-white/10">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#7CE3B3]" />
-                「{currentSet.title}」動態出題佇列分佈
-              </span>
-              <span className="text-[11px] text-zinc-400">
-                防重複 questionHash + 冷卻過濾已啟用
-              </span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="p-2.5 rounded-lg bg-[#161B18] border border-white/5 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#F472B6]/15 text-[#F472B6] flex items-center justify-center shrink-0">
-                  <AlertTriangle className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs text-zinc-400">優先級 1・弱點</div>
-                  <div className="text-sm font-bold text-white">{currentSetStats.weakness} 字</div>
-                </div>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-[#161B18] border border-white/5 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#7CE3B3]/15 text-[#7CE3B3] flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs text-zinc-400">優先級 2・新字</div>
-                  <div className="text-sm font-bold text-white">{currentSetStats.untested} 字</div>
-                </div>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-[#161B18] border border-white/5 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#FBBF24]/15 text-[#FBBF24] flex items-center justify-center shrink-0">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs text-zinc-400">優先級 3・複習</div>
-                  <div className="text-sm font-bold text-white">{currentSetStats.dueReview} 字</div>
-                </div>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-[#161B18] border border-white/5 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#60A5FA]/15 text-[#60A5FA] flex items-center justify-center shrink-0">
-                  <Snowflake className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs text-zinc-400">暫緩出題・冷卻</div>
-                  <div className="text-sm font-bold text-white">{currentSetStats.cooldown} 字</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* 題型選擇器 */}
         <div>

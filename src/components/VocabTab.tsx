@@ -838,49 +838,6 @@ export function VocabTab() {
         </button>
       </header>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-[#161B18] border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="搜尋單字集名稱..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#0D110F] border border-white/10 text-xs text-white focus:outline-none focus:border-[#7CE3B3]"
-          />
-        </div>
-
-        {/* Color Filter Pills */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs text-zinc-400 flex items-center gap-1 mr-1">
-            <Filter className="w-3.5 h-3.5" />
-            顏色篩選：
-          </span>
-          <button
-            onClick={() => setColorFilter('all')}
-            className={`px-2.5 py-1 rounded-full text-xs font-medium transition cursor-pointer ${
-              colorFilter === 'all'
-                ? 'bg-[#7CE3B3] text-[#0D110F] font-semibold'
-                : 'bg-[#0D110F] text-zinc-400 hover:text-white'
-            }`}
-          >
-            全部
-          </button>
-          {TAG_COLORS.map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setColorFilter(colorFilter === c.hex ? 'all' : c.hex)}
-              className={`w-6 h-6 rounded-full flex items-center justify-center transition cursor-pointer ${
-                colorFilter === c.hex ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'
-              }`}
-              style={{ backgroundColor: c.hex }}
-              title={c.name}
-            />
-          ))}
-        </div>
-      </div>
-
       {/* WordSet Cards Grid */}
       {filteredSets.length === 0 ? (
         <div className="bg-[#161B18] border border-white/10 rounded-2xl p-12 text-center">

@@ -35,13 +35,7 @@ export function Sidebar() {
               V
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-bold tracking-tight text-white">Vocu</span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#7CE3B3]/15 text-[#7CE3B3] border border-[#7CE3B3]/30">
-                  MCP AI
-                </span>
-              </div>
-              <p className="text-xs text-zinc-400 mt-0.5">動態記憶與語境題庫</p>
+              <span className="text-xl font-bold tracking-tight text-white">Vocu</span>
             </div>
           </div>
         </div>
@@ -90,34 +84,6 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Bottom Status Card: Dynamic Engine & MCP Agent Status */}
-        <div className="mt-auto pt-4 border-t border-white/10 space-y-3">
-          <div className="p-3.5 rounded-2xl bg-[#0D110F] border border-white/10">
-            <div className="flex items-center justify-between text-xs mb-1.5">
-              <span className="text-zinc-400 flex items-center gap-1.5 font-medium">
-                <Sparkles className="w-3.5 h-3.5 text-[#7CE3B3]" />
-                動態出題引擎
-              </span>
-              <span className="text-[#7CE3B3] font-medium">運作中</span>
-            </div>
-            <p className="text-[11px] text-zinc-400 leading-relaxed">
-              自動過濾已作答題幹雜湊，優先抽取{' '}
-              <span className="text-[#F472B6] font-medium">{weaknessCount} 個弱點字詞</span>
-              ，冷卻門檻 {settings.cooldownThreshold} 題。
-            </p>
-          </div>
-
-          <button
-            onClick={() => setActiveTab('profile')}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 text-xs transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-2 text-zinc-300">
-              <Terminal className="w-3.5 h-3.5 text-[#7CE3B3]" />
-              <span className="truncate">MCP Agent 已連線</span>
-            </div>
-            <span className="w-2 h-2 rounded-full bg-[#7CE3B3]" />
-          </button>
-        </div>
       </aside>
 
       {/* Mobile Bottom Navigation */}

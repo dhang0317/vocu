@@ -159,41 +159,6 @@ export function ProfileTab() {
         </p>
       </header>
 
-      {/* 1. 個人資訊與帳號同步 */}
-      <section className="bg-[#161B18] border border-white/10 rounded-2xl p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#7CE3B3] text-[#0D110F] font-bold text-xl flex items-center justify-center shrink-0">
-              {settings.avatarText}
-            </div>
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h2 className="text-lg font-bold text-white">{settings.userName}</h2>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#7CE3B3]/15 text-[#7CE3B3] border border-[#7CE3B3]/30">
-                  <CheckCircle2 className="w-3 h-3" />
-                  已登入同步
-                </span>
-              </div>
-              <p className="text-xs text-zinc-400 mt-0.5">{settings.userEmail}</p>
-              <p className="text-[11px] text-zinc-500 mt-1">
-                本地持久化 (LocalStorage) 與雲端狀態已同步 • 上次同步：
-                {formatRelativeTime(settings.lastSyncedAt)}
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() =>
-              updateSettings({ lastSyncedAt: new Date().toISOString() })
-            }
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D110F] hover:bg-white/5 border border-white/10 text-xs font-semibold text-zinc-200 transition cursor-pointer self-start sm:self-center"
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-[#7CE3B3]" />
-            <span>立即同步資料</span>
-          </button>
-        </div>
-      </section>
-
       {/* 2. 偏好與出題策略設定 */}
       <section className="bg-[#161B18] border border-white/10 rounded-2xl p-6 space-y-5">
         <div className="flex items-center gap-2.5">
