@@ -3,6 +3,7 @@ import {
   loadWorkspaceFromFirestore,
   saveWorkspaceToFirestore,
   saveMcpQuizzesToSubcollection,
+  deleteMcpQuizzesFromSubcollection,
 } from '@/lib/firestoreSync';
 import {
   INITIAL_WORD_SETS,
@@ -171,6 +172,21 @@ export async function POST(req: NextRequest) {
                     },
                   },
                   required: ['title'],
+                },
+              },
+              {
+                name: 'delete_quiz_items',
+                description: '刪除已上傳至 Vocu Firestore 題庫的指定題目（可傳入 quizIds 陣列）',
+                inputSchema: {
+                  type: 'object',
+                  properties: {
+                    quizIds: {
+                      type: 'array',
+                      description: '要刪除的題目 ID 陣列',
+                      items: { type: 'string' },
+                    },
+                  },
+                  required: ['quizIds'],
                 },
               },
             ],

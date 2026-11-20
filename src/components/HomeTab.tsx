@@ -137,20 +137,6 @@ export function HomeTab() {
 
       {/* 3. 快速開始區 */}
       <section className="bg-[#161B18] border border-white/10 rounded-2xl p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-white">快速開始練習</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              選擇最近使用的單字集與測驗題型，系統將依作答記錄動態過濾與加權出題
-            </p>
-          </div>
-          <button
-            onClick={() => setActiveTab('vocab')}
-            className="text-xs font-medium text-[#7CE3B3] hover:underline cursor-pointer"
-          >
-            管理全部單字集 →
-          </button>
-        </div>
 
         {/* 最近使用的單字集選擇卡片 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

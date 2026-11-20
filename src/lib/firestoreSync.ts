@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 import { WordSet, WordItem, PracticeLog, QuizItem, UserSettings } from '@/types/vocu';
 
@@ -108,5 +108,18 @@ export async function loadMcpQuizzesFromSubcollection(): Promise<QuizItem[]> {
     return items;
   } catch {
     return [];
+  }
+}
+
+export async function deleteMcpQuizzesFromSubcollection(
+  ids: string[]
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const colRef = collection(db, WORKSPACE_COLLECTION, DEFAULT_DOC_ID, 'quizzes');
+    await Promise.all(ids.map((id) => deleteDoc(doc(colRef, id))));
+    return { ok: true };
+  } catch (err) {
+    console.error('Firestore subcollection delete error:', err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
