@@ -190,9 +190,12 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
           const raw = q as unknown as Record<string, unknown>;
           const t = String(raw.type || '').toLowerCase();
 
-          const sentence = String(
+          let sentence = String(
             raw.sentence || raw.question || raw.prompt || raw.text || ''
           );
+          if (sentence && !sentence.includes('{{BLANK}}') && /_{3,}/.test(sentence)) {
+            sentence = sentence.replace(/_{3,}/, '{{BLANK}}');
+          }
           const targetTerm = String(
             raw.targetTerm || raw.answer || raw.word || raw.term || ''
           );
@@ -204,11 +207,39 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
             return { ...raw, type: 'word_bank_cloze' as const };
           }
           if (t === 'multiple_choice_cloze' || (Array.isArray(raw.options) && raw.options.length === 4)) {
+            const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
+            const rawOpts = Array.isArray(raw.options) ? raw.options : [];
+            const normalizedOptions = rawOpts.slice(0, 4).map((opt, idx) => {
+              if (typeof opt === 'string') {
+                return { label: labels[idx], term: opt.replace(/^[A-D][\.\)]\s*/i, '').trim() };
+              }
+              const obj = (opt || {}) as Record<string, unknown>;
+              return {
+                label: (String(obj.label || obj.letter || labels[idx]).toUpperCase().slice(0, 1) ||
+                  labels[idx]) as 'A' | 'B' | 'C' | 'D',
+                term: String(obj.term || obj.text || obj.value || obj.word || '').trim(),
+              };
+            });
+
+            let correctLabel = String(raw.correctLabel || '').toUpperCase().slice(0, 1) as
+              | 'A'
+              | 'B'
+              | 'C'
+              | 'D';
+            if (!['A', 'B', 'C', 'D'].includes(correctLabel)) {
+              const matched = normalizedOptions.find(
+                (o) => o.term.toLowerCase() === targetTerm.trim().toLowerCase()
+              );
+              correctLabel = matched ? matched.label : 'A';
+            }
+
             return {
               ...raw,
               type: 'multiple_choice_cloze' as const,
               sentence,
               targetTerm,
+              options: normalizedOptions,
+              correctLabel,
             };
           }
           return {
