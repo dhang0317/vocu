@@ -47,6 +47,7 @@ export function QuizModal() {
 
   // 單句克漏字 (Multiple Choice Cloze) 狀態：quiz.id -> 'A' | 'B' | 'C' | 'D'
   const [mcSelections, setMcSelections] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
+  const [mcCurrentIndex, setMcCurrentIndex] = useState(0);
 
   // 組題：根據 activeQuiz 與 sessionSeed 執行「防重複 + 弱點加權」演算法
   const sessionData = useMemo(() => {
@@ -673,14 +674,27 @@ export function QuizModal() {
             </span>
           </div>
 
-          <div className="space-y-4">
-            {questions.map((q, idx) => {
-              const chosenLabel = mcSelections[q.id];
-              const isAnswered = Boolean(chosenLabel);
-              const isCorrect = isAnswered && chosenLabel === q.correctLabel;
-              const parts = (q.sentence || '').split('{{BLANK}}');
+          {/* 進度條 */}
+          <div className="w-full h-2 rounded-full bg-[#161B18] overflow-hidden border border-white/10">
+            <div
+              className="h-full bg-[#7CE3B3] transition-all duration-300"
+              style={{
+                width: `${questions.length > 0 ? Math.round(((mcCurrentIndex + 1) / questions.length) * 100) : 0}%`,
+              }}
+            />
+          </div>
 
-              return (
+          {(() => {
+            const q = questions[mcCurrentIndex];
+            if (!q) return null;
+            const chosenLabel = mcSelections[q.id];
+            const isAnswered = Boolean(chosenLabel);
+            const isCorrect = isAnswered && chosenLabel === q.correctLabel;
+            const parts = (q.sentence || '').split('{{BLANK}}');
+            const isLastQuestion = mcCurrentIndex >= questions.length - 1;
+
+            return (
+              <div className="space-y-4">
                 <div
                   key={q.id}
                   className={`bg-[#161B18] border rounded-2xl p-6 space-y-4 transition ${
@@ -692,7 +706,9 @@ export function QuizModal() {
                   }`}
                 >
                   <div className="flex items-center justify-between text-xs text-zinc-400">
-                    <span className="font-bold text-white">第 {idx + 1} 題</span>
+                    <span className="font-bold text-white">
+                      第 {mcCurrentIndex + 1} / {questions.length} 題
+                    </span>
                     <span className="font-mono text-zinc-500">{q.questionHash}</span>
                   </div>
 
@@ -749,7 +765,7 @@ export function QuizModal() {
                   </div>
 
                   {isAnswered && (
-                    <div className="mt-2 p-4 rounded-xl bg-[#0D110F] border border-white/10 space-y-1.5">
+                    <div className="mt-2 p-4 rounded-xl bg-[#0D110F] border border-white/10 space-y-2">
                       <div className="flex items-center gap-2 text-xs font-bold">
                         {isCorrect ? (
                           <span className="text-[#7CE3B3]">
@@ -767,47 +783,59 @@ export function QuizModal() {
                     </div>
                   )}
                 </div>
-              );
-            })}
 
-            {allMcAnswered && (
-              <div className="bg-[#161B18] border border-[#7CE3B3]/40 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[#7CE3B3]">
-                    SESSION COMPLETED
-                  </span>
-                  <h3 className="text-xl font-bold text-white mt-0.5">
-                    本回合成績：{correctMcCount} / {questions.length} 題正確
-                  </h3>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
+                {/* 作答後顯示「下一題」或「本回合成績」 */}
+                {isAnswered && !isLastQuestion && (
                   <button
                     type="button"
-                    onClick={() => {
-                      closeQuiz();
-                      setActiveTab('history');
-                    }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D110F] border border-white/15 text-xs font-semibold text-white cursor-pointer"
+                    onClick={() => setMcCurrentIndex((i) => i + 1)}
+                    className="w-full py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-sm transition cursor-pointer"
                   >
-                    <History className="w-3.5 h-3.5 text-[#7CE3B3]" />
-                    <span>查看作答記錄</span>
+                    下一題（{mcCurrentIndex + 2} / {questions.length}）→
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsSubmitted(false);
-                      setMcSelections({});
-                      setSessionSeed((s) => s + 1);
-                    }}
-                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>根據最新記錄重新出題</span>
-                  </button>
-                </div>
+                )}
+
+                {allMcAnswered && isLastQuestion && (
+                  <div className="bg-[#161B18] border border-[#7CE3B3]/40 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-[#7CE3B3]">
+                        SESSION COMPLETED
+                      </span>
+                      <h3 className="text-xl font-bold text-white mt-0.5">
+                        本回合成績：{correctMcCount} / {questions.length} 題正確
+                      </h3>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeQuiz();
+                          setActiveTab('history');
+                        }}
+                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D110F] border border-white/15 text-xs font-semibold text-white cursor-pointer"
+                      >
+                        <History className="w-3.5 h-3.5 text-[#7CE3B3]" />
+                        <span>查看作答記錄</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSubmitted(false);
+                          setMcSelections({});
+                          setMcCurrentIndex(0);
+                          setSessionSeed((s) => s + 1);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>根據最新記錄重新出題</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
         </div>
       </div>
     );
