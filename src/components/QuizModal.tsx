@@ -911,58 +911,14 @@ export function QuizModal() {
   return (
     <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md overflow-y-auto">
       <div className="max-w-[850px] mx-auto px-4 py-6 sm:py-10 space-y-6">
-        {/* Top Header */}
-        <div className="flex items-center justify-between gap-4 bg-[#161B18] border border-white/10 rounded-2xl px-5 py-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#7CE3B3] text-[#0D110F]">
-                題型二：文意字彙（首尾字母提示拼字填空）
-              </span>
-              {activeQuiz.onlyWrongWords && (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F472B6]/20 text-[#F472B6]">
-                  錯題特訓模式
-                </span>
-              )}
-              <span className="text-xs text-zinc-400">
-                {currentSet ? currentSet.title : '所有單字集'}
-              </span>
-            </div>
-            <h2 className="text-base sm:text-lg font-bold text-white mt-1">
-              支援單字與多字片語首尾字母提示 • 全部交卷後統一公佈答案與解析
-            </h2>
-          </div>
-
+        {/* Minimal Top Close Bar (Unified with Multiple Choice) */}
+        <div className="flex items-center justify-end">
           <button
             onClick={closeQuiz}
-            className="p-2 rounded-xl bg-[#0D110F] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
+            className="p-2 rounded-xl bg-[#161B18] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
-
-        {/* 動態出題優先級摘要 */}
-        <div className="bg-[#161B18] border border-white/10 rounded-2xl px-5 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 text-zinc-300">
-            <Sparkles className="w-4 h-4 text-[#7CE3B3] shrink-0" />
-            <span>
-              本場次依序抽取：
-              <strong className="text-[#F472B6] ml-1">
-                優先級 1 (弱點補強) {selectionSummary.weaknessCount} 題
-              </strong>{' '}
-              →{' '}
-              <strong className="text-[#7CE3B3]">
-                優先級 2 (未測驗新字) {selectionSummary.newCount} 題
-              </strong>{' '}
-              →{' '}
-              <strong className="text-[#FBBF24]">
-                優先級 3 (久未複習) {selectionSummary.reviewCount} 題
-              </strong>
-            </span>
-          </div>
-          <span className="text-zinc-400">
-            已跳過 {selectionSummary.skippedCooldownCount} 個冷卻字詞 • 排除{' '}
-            {selectionSummary.excludedDuplicateHashes} 筆已做過題幹
-          </span>
         </div>
 
         {/* 題目列表 */}
