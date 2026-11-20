@@ -132,35 +132,47 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
   const [activeQuiz, setActiveQuiz] = useState<ActiveQuizConfig | null>(null);
   const isHydrated = true;
 
-  // Persist to LocalStorage on changes
+  // Persist to LocalStorage on changes (safe against QuotaExceededError on mobile)
   useEffect(() => {
     if (!isHydrated) return;
-    localStorage.setItem(STORAGE_KEYS.SETS, JSON.stringify(wordSets));
+    try {
+      localStorage.setItem(STORAGE_KEYS.SETS, JSON.stringify(wordSets));
+    } catch {}
   }, [wordSets, isHydrated]);
 
   useEffect(() => {
     if (!isHydrated) return;
-    localStorage.setItem(STORAGE_KEYS.WORDS, JSON.stringify(words));
+    try {
+      localStorage.setItem(STORAGE_KEYS.WORDS, JSON.stringify(words));
+    } catch {}
   }, [words, isHydrated]);
 
   useEffect(() => {
     if (!isHydrated) return;
-    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(practiceLogs));
+    try {
+      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(practiceLogs));
+    } catch {}
   }, [practiceLogs, isHydrated]);
 
   useEffect(() => {
     if (!isHydrated) return;
-    localStorage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(quizBank));
+    try {
+      localStorage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(quizBank));
+    } catch {}
   }, [quizBank, isHydrated]);
 
   useEffect(() => {
     if (!isHydrated) return;
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    try {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    } catch {}
   }, [settings, isHydrated]);
 
   useEffect(() => {
     if (!isHydrated) return;
-    localStorage.setItem(STORAGE_KEYS.RECENT_SET, recentSetId);
+    try {
+      localStorage.setItem(STORAGE_KEYS.RECENT_SET, recentSetId);
+    } catch {}
   }, [recentSetId, isHydrated]);
 
   // Subscribe to Cloud Firestore in real time so MCP Agent pushes appear immediately

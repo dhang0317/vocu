@@ -608,10 +608,10 @@ export function VocabTab() {
                         </div>
                       </div>
                       <p className="text-sm text-zinc-200 leading-relaxed">
-                        {quiz.sentence.replace(
+                        {(quiz.sentence || '').replace(
                           '{{BLANK}}',
                           quiz.type === 'letter_hint_cloze'
-                            ? `[ ${generateLetterHintMask(quiz.targetTerm)} ]`
+                            ? `[ ${generateLetterHintMask(quiz.targetTerm || '')} ]`
                             : '________'
                         )}
                       </p>
