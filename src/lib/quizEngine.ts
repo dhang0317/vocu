@@ -265,6 +265,22 @@ export function buildLetterHintQuizSession(params: {
     selectedQuestions.push(chosenQuiz);
   }
 
+  // Fallback: if wordId/targetTerm matching yielded fewer than questionCount, pull directly from quizBank for this setId
+  if (selectedQuestions.length < questionCount) {
+    const usedQuizIds = new Set(selectedQuestions.map((q) => q.id));
+    const directSetQuizzes = existingLetterQuizzes.filter(
+      (q) =>
+        (setId === 'all' || q.setId === setId) &&
+        !answeredHashes.has(q.questionHash) &&
+        !usedQuizIds.has(q.id)
+    );
+    for (const q of directSetQuizzes) {
+      if (selectedQuestions.length >= questionCount) break;
+      selectedQuestions.push({ ...q, priorityReason: 'new' });
+      newCount++;
+    }
+  }
+
   return {
     questions: selectedQuestions,
     selectionSummary: {
@@ -466,6 +482,22 @@ export function buildMultipleChoiceQuizSession(params: {
     }
 
     selectedQuestions.push(chosen);
+  }
+
+  // Fallback: if wordId/targetTerm matching yielded fewer than questionCount, pull directly from quizBank for this setId
+  if (selectedQuestions.length < questionCount) {
+    const usedQuizIds = new Set(selectedQuestions.map((q) => q.id));
+    const directSetQuizzes = existingMcQuizzes.filter(
+      (q) =>
+        (setId === 'all' || q.setId === setId) &&
+        !answeredHashes.has(q.questionHash) &&
+        !usedQuizIds.has(q.id)
+    );
+    for (const q of directSetQuizzes) {
+      if (selectedQuestions.length >= questionCount) break;
+      selectedQuestions.push({ ...q, priorityReason: 'new' });
+      newCount++;
+    }
   }
 
   return {
