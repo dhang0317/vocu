@@ -110,31 +110,6 @@ export function HomeTab() {
 
   return (
     <div className="space-y-6 pb-24">
-      {/* 1. 動態問候與目標提示 */}
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-[#7CE3B3] mb-1">
-            DAILY VOCABULARY PRACTICE
-          </p>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            {greeting}，{settings.userName.split(' ')[0]}
-          </h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            {remainingCount > 0 ? (
-              <>
-                今天還差{' '}
-                <span className="text-[#7CE3B3] font-semibold">{remainingCount} 題</span>{' '}
-                就達標，系統已為你準備好無重複語境題目。
-              </>
-            ) : (
-              <span className="text-[#7CE3B3] font-medium">
-                太棒了！你已完成今日目標（{todayCompletedCount} / {dailyGoal} 題），隨時可繼續挑戰弱點單字。
-              </span>
-            )}
-          </p>
-        </div>
-      </header>
-
       {/* 3. 快速開始區 */}
       <section className="bg-[#161B18] border border-white/10 rounded-2xl p-6 space-y-6">
 
