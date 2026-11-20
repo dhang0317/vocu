@@ -592,37 +592,35 @@ export function QuizModal() {
   }
 
   // ==========================================================
-  // 題型三：單句克漏字 (四選一 Multiple Choice Cloze)
+  // 題型三：單句克漏字 (四選一 Multiple Choice Cloze) — 答一題對一次答案
   // ==========================================================
   if (sessionData.type === 'multiple_choice_cloze') {
     const { questions, selectionSummary } = sessionData;
     const answeredMcCount = questions.filter((q) => Boolean(mcSelections[q.id])).length;
+    const correctMcCount = questions.filter((q) => mcSelections[q.id] === q.correctLabel).length;
+    const wrongMcCount = answeredMcCount - correctMcCount;
+    const allMcAnswered = questions.length > 0 && answeredMcCount === questions.length;
 
-    const handleSubmitMc = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (isSubmitted) return;
-      setIsSubmitted(true);
+    const handleSelectMcOption = (
+      q: (typeof questions)[number],
+      label: 'A' | 'B' | 'C' | 'D'
+    ) => {
+      if (mcSelections[q.id]) return; // 已作答鎖定
+      setMcSelections((prev) => ({ ...prev, [q.id]: label }));
 
-      const entries = questions.map((q) => {
-        const chosenLabel = mcSelections[q.id];
-        const chosenOpt = q.options.find((o) => o.label === chosenLabel);
-        const isCorrect = chosenLabel === q.correctLabel;
-        return {
+      const chosenOpt = q.options.find((o) => o.label === label);
+      const isCorrect = label === q.correctLabel;
+      recordQuizSubmission([
+        {
           wordId: q.wordId,
           setId: q.setId,
-          questionType: 'multiple_choice_cloze' as const,
+          questionType: 'multiple_choice_cloze',
           questionHash: q.questionHash,
-          userAnswer: chosenOpt ? `${chosenOpt.label}. ${chosenOpt.term}` : '(未作答)',
+          userAnswer: chosenOpt ? `${chosenOpt.label}. ${chosenOpt.term}` : label,
           isCorrect,
-        };
-      });
-
-      recordQuizSubmission(entries);
+        },
+      ]);
     };
-
-    const correctMcCount = isSubmitted
-      ? questions.filter((q) => mcSelections[q.id] === q.correctLabel).length
-      : 0;
 
     return (
       <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md overflow-y-auto">
@@ -638,16 +636,24 @@ export function QuizModal() {
                 </span>
               </div>
               <h2 className="text-base sm:text-lg font-bold text-white mt-1">
-                依單句語境選出最適合的單字或片語 • 交卷後統一公佈答案與解析
+                點擊選項即時批改並顯示解析（{answeredMcCount} / {questions.length} 題）
               </h2>
             </div>
 
-            <button
-              onClick={closeQuiz}
-              className="p-2 rounded-xl bg-[#0D110F] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#F472B6]/20 text-[#F472B6]">
+                ✗ {wrongMcCount}
+              </span>
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#7CE3B3]/20 text-[#7CE3B3]">
+                ✓ {correctMcCount}
+              </span>
+              <button
+                onClick={closeQuiz}
+                className="p-2 rounded-xl bg-[#0D110F] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <div className="bg-[#161B18] border border-white/10 rounded-2xl px-5 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -667,17 +673,18 @@ export function QuizModal() {
             </span>
           </div>
 
-          <form onSubmit={handleSubmitMc} className="space-y-4">
+          <div className="space-y-4">
             {questions.map((q, idx) => {
               const chosenLabel = mcSelections[q.id];
-              const isCorrect = isSubmitted && chosenLabel === q.correctLabel;
+              const isAnswered = Boolean(chosenLabel);
+              const isCorrect = isAnswered && chosenLabel === q.correctLabel;
               const parts = (q.sentence || '').split('{{BLANK}}');
 
               return (
                 <div
                   key={q.id}
                   className={`bg-[#161B18] border rounded-2xl p-6 space-y-4 transition ${
-                    !isSubmitted
+                    !isAnswered
                       ? 'border-white/10'
                       : isCorrect
                         ? 'border-[#7CE3B3]/50'
@@ -691,7 +698,15 @@ export function QuizModal() {
 
                   <p className="text-base text-zinc-100 leading-relaxed">
                     {parts[0]}
-                    <span className="inline-block mx-1.5 px-4 py-0.5 rounded-lg bg-[#0D110F] border border-white/25 text-[#7CE3B3] font-mono font-bold">
+                    <span
+                      className={`inline-block mx-1.5 px-4 py-0.5 rounded-lg bg-[#0D110F] border font-mono font-bold ${
+                        !isAnswered
+                          ? 'border-white/25 text-[#7CE3B3]'
+                          : isCorrect
+                            ? 'border-[#7CE3B3] text-[#7CE3B3]'
+                            : 'border-[#F472B6] text-[#F472B6]'
+                      }`}
+                    >
                       {chosenLabel
                         ? q.options.find((o) => o.label === chosenLabel)?.term || '________'
                         : '________'}
@@ -705,11 +720,8 @@ export function QuizModal() {
                       const isCorrectOpt = q.correctLabel === opt.label;
 
                       let optStyle =
-                        'bg-[#0D110F] border-white/10 text-zinc-200 hover:border-white/30';
-                      if (!isSubmitted && isSelected) {
-                        optStyle =
-                          'bg-[#7CE3B3]/15 border-[#7CE3B3] text-[#7CE3B3] ring-1 ring-[#7CE3B3]/40';
-                      } else if (isSubmitted) {
+                        'bg-[#0D110F] border-white/10 text-zinc-200 hover:border-[#7CE3B3]/60 hover:bg-white/[0.03]';
+                      if (isAnswered) {
                         if (isCorrectOpt) {
                           optStyle = 'bg-[#7CE3B3]/20 border-[#7CE3B3] text-[#7CE3B3] font-semibold';
                         } else if (isSelected && !isCorrectOpt) {
@@ -723,11 +735,11 @@ export function QuizModal() {
                         <button
                           key={opt.label}
                           type="button"
-                          disabled={isSubmitted}
-                          onClick={() =>
-                            setMcSelections((prev) => ({ ...prev, [q.id]: opt.label }))
-                          }
-                          className={`w-full text-left px-4 py-3.5 rounded-xl border text-sm transition flex items-center gap-3 cursor-pointer ${optStyle}`}
+                          disabled={isAnswered}
+                          onClick={() => handleSelectMcOption(q, opt.label)}
+                          className={`w-full text-left px-4 py-3.5 rounded-xl border text-sm transition flex items-center gap-3 ${
+                            isAnswered ? 'cursor-default' : 'cursor-pointer'
+                          } ${optStyle}`}
                         >
                           <span className="font-mono font-bold w-6 shrink-0">{opt.label}.</span>
                           <span className="flex-1">{opt.term}</span>
@@ -736,42 +748,29 @@ export function QuizModal() {
                     })}
                   </div>
 
-                  {isSubmitted && (
+                  {isAnswered && (
                     <div className="mt-2 p-4 rounded-xl bg-[#0D110F] border border-white/10 space-y-1.5">
                       <div className="flex items-center gap-2 text-xs font-bold">
                         {isCorrect ? (
-                          <span className="text-[#7CE3B3]">✓ 答對！正確答案：{q.correctLabel}. {q.targetTerm}</span>
+                          <span className="text-[#7CE3B3]">
+                            ✓ 答對！正確答案：{q.correctLabel}. {q.targetTerm}
+                          </span>
                         ) : (
-                          <span className="text-[#F472B6]">✗ 答錯，正確答案：{q.correctLabel}. {q.targetTerm}</span>
+                          <span className="text-[#F472B6]">
+                            ✗ 答錯，正確答案：{q.correctLabel}. {q.targetTerm}
+                          </span>
                         )}
                       </div>
-                      <p className="text-xs text-zinc-300 leading-relaxed">{q.explanation}</p>
+                      {q.explanation && (
+                        <p className="text-xs text-zinc-300 leading-relaxed">{q.explanation}</p>
+                      )}
                     </div>
                   )}
                 </div>
               );
             })}
 
-            {!isSubmitted ? (
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={closeQuiz}
-                  className="px-5 py-3.5 rounded-2xl bg-[#161B18] border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer"
-                >
-                  暫停離開
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 sm:flex-initial px-8 py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-sm inline-flex items-center justify-center gap-2 transition cursor-pointer"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>
-                    統一交卷並看解析（已選 {answeredMcCount}/{questions.length} 題）
-                  </span>
-                </button>
-              </div>
-            ) : (
+            {allMcAnswered && (
               <div className="bg-[#161B18] border border-[#7CE3B3]/40 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#7CE3B3]">
@@ -808,7 +807,7 @@ export function QuizModal() {
                 </div>
               </div>
             )}
-          </form>
+          </div>
         </div>
       </div>
     );
