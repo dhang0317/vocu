@@ -49,6 +49,16 @@ export function QuizModal() {
   const [mcSelections, setMcSelections] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
   const [mcCurrentIndex, setMcCurrentIndex] = useState(0);
 
+  // 每次開啟新的測驗場次時，強制重置所有作答與交卷狀態
+  React.useEffect(() => {
+    setIsSubmitted(false);
+    setActiveBlankNumber(1);
+    setWordBankSelections({});
+    setLetterHintInputs({});
+    setMcSelections({});
+    setMcCurrentIndex(0);
+  }, [activeQuiz]);
+
   // 組題：根據 activeQuiz 與 sessionSeed 執行「防重複 + 弱點加權」演算法
   const sessionData = useMemo(() => {
     if (!activeQuiz) return null;
