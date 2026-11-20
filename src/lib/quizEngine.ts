@@ -167,129 +167,6 @@ export function rankWordsForQuiz(
 }
 
 /**
- * 動態產生全新語境的「文意字彙」題目（當既有題庫的 questionHash 都已經被使用者做過，或為使用者新增的自訂單字時）
- */
-const CONTEXT_TEMPLATES: Record<string, Array<{ tpl: string; zhTpl: string }>> = {
-  'n.': [
-    {
-      tpl: 'During the international symposium, keynote speakers highlighted how this critical {{BLANK}} shapes modern policy decisions.',
-      zhTpl: '在國際研討會期間，主講者強調了這項關鍵「{DEF}」如何影響現代決策。',
-    },
-    {
-      tpl: 'Researchers published a comprehensive report analyzing the long-term impact of the {{BLANK}} on regional communities.',
-      zhTpl: '研究人員發表了一份綜合報告，分析該「{DEF}」對區域社群的長期影響。',
-    },
-    {
-      tpl: 'Understanding the underlying {{BLANK}} behind the data allowed the engineering team to solve the bottleneck quickly.',
-      zhTpl: '理解數據背後的「{DEF}」讓工程團隊得以迅速解決瓶頸。',
-    },
-  ],
-  'v.': [
-    {
-      tpl: 'To achieve sustainable growth, organizations must {{BLANK}} their core resources effectively in changing markets.',
-      zhTpl: '為了達成永續成長，組織必須在多變的市場中有效地「{DEF}」其核心資源。',
-    },
-    {
-      tpl: 'The committee proposed new guidelines designed to {{BLANK}} public trust and ecological balance.',
-      zhTpl: '委員會提出了新指導方針，旨在「{DEF}」公眾信任與生態平衡。',
-    },
-    {
-      tpl: 'Leading educators continually {{BLANK}} the value of critical thinking over rote memorization.',
-      zhTpl: '頂尖教育工作者持續「{DEF}」批判性思考相較於死記硬背的價值。',
-    },
-  ],
-  'adj.': [
-    {
-      tpl: 'In an era of rapid technological disruption, building a {{BLANK}} infrastructure is essential for national security.',
-      zhTpl: '在科技快速變革的時代，建立「{DEF}」基礎設施對國家安全至關重要。',
-    },
-    {
-      tpl: 'Field observations confirmed that small island ecosystems remain highly {{BLANK}} to sudden shifts in ocean temperature.',
-      zhTpl: '實地觀測證實，小型島嶼生態系統對海洋溫度的驟變依然相當「{DEF}」。',
-    },
-    {
-      tpl: 'The independent audit concluded that structural reform is not merely helpful but {{BLANK}} for future survival.',
-      zhTpl: '獨立稽核結論指出，結構性改革對未來的生存而言不僅有幫助，更是「{DEF}」。',
-    },
-  ],
-  'phr.': [
-    {
-      tpl: 'After the unexpected power outage at the main terminal, the backup documents were {{BLANK}}.',
-      zhTpl: '在主航廈發生意外停電後，備份文件便「{DEF}」。',
-    },
-    {
-      tpl: 'Experienced mentors always remind young professionals not to {{BLANK}} the support of their teammates.',
-      zhTpl: '經驗豐富的導師總是提醒年輕專業人士，切勿對團隊夥伴的支持「{DEF}」。',
-    },
-    {
-      tpl: 'While rigorous quality control requires extra effort today, it builds lasting brand reputation {{BLANK}}.',
-      zhTpl: '雖然嚴格的品質控管在當下需要額外心力，但「{DEF}」它能建立長久的品牌聲譽。',
-    },
-  ],
-};
-
-function synthesizeFreshLetterHintQuestion(
-  word: WordItem,
-  answeredHashes: Set<string>,
-  priorityReason: LetterHintClozeQuiz['priorityReason'],
-  variationIndex: number = 0
-): LetterHintClozeQuiz {
-  const posKey = word.pos.includes('phr')
-    ? 'phr.'
-    : word.pos.includes('adj')
-      ? 'adj.'
-      : word.pos.includes('v')
-        ? 'v.'
-        : 'n.';
-
-  const templates = CONTEXT_TEMPLATES[posKey] || CONTEXT_TEMPLATES['n.'];
-
-  for (let i = 0; i < templates.length; i++) {
-    const candidate = templates[(i + variationIndex) % templates.length];
-    const sentence = candidate.tpl;
-    const hash = computeQuestionHash(`${word.id}:${sentence}`);
-    if (!answeredHashes.has(hash)) {
-      return {
-        id: `quiz-dyn-lh-${word.id}-${hash}`,
-        setId: word.setId,
-        type: 'letter_hint_cloze',
-        wordId: word.id,
-        sentence,
-        targetTerm: word.term.trim(),
-        baseTerm: word.term.trim(),
-        pos: word.pos,
-        chineseHint: word.definition,
-        explanation: candidate.zhTpl.replace('{DEF}', word.definition) + `（目標字詞：${word.term}）`,
-        questionHash: hash,
-        priorityReason,
-        createdAt: new Date().toISOString(),
-        source: 'dynamic',
-      };
-    }
-  }
-
-  // Fallback with timestamp salt to guarantee a brand new context hash
-  const fallbackSentence = `In contemporary academic discourse, mastering the concept of "{{BLANK}}" (${word.pos}) is vital for comprehending how ${word.definition} influences real-world outcomes [Context #${answeredHashes.size + 1}].`;
-  const hash = computeQuestionHash(`${word.id}:${fallbackSentence}`);
-  return {
-    id: `quiz-dyn-lh-${word.id}-${hash}`,
-    setId: word.setId,
-    type: 'letter_hint_cloze',
-    wordId: word.id,
-    sentence: fallbackSentence,
-    targetTerm: word.term.trim(),
-    baseTerm: word.term.trim(),
-    pos: word.pos,
-    chineseHint: word.definition,
-    explanation: `AI 動態生成的全新語境例句，協助強化記憶「${word.term}（${word.definition}）」。`,
-    questionHash: hash,
-    priorityReason,
-    createdAt: new Date().toISOString(),
-    source: 'dynamic',
-  };
-}
-
-/**
  * 組出「文意字彙 (Letter Hint Cloze)」測驗場次
  * 嚴格遵守：
  * 1. 同一場次不重複出現相同單字
@@ -377,12 +254,8 @@ export function buildLetterHintQuizSession(params: {
     }
 
     if (!chosenQuiz) {
-      chosenQuiz = synthesizeFreshLetterHintQuestion(
-        item.word,
-        answeredHashes,
-        priorityReason,
-        logs.length
-      );
+      usedWordIdsInSession.delete(item.word.id);
+      continue;
     }
 
     selectedQuestions.push(chosenQuiz);
@@ -580,56 +453,8 @@ export function buildMultipleChoiceQuizSession(params: {
     }
 
     if (!chosen) {
-      // 使用動態單句語境模板生成題幹
-      const baseLh = synthesizeFreshLetterHintQuestion(
-        item.word,
-        answeredHashes,
-        priorityReason,
-        logs.length + idx
-      );
-
-      // 挑選 3 個干擾項（優先從同單字集挑選，不足再從全域挑選）
-      const distractorPool = [
-        ...setWords.filter((w) => w.id !== item.word.id),
-        ...words.filter((w) => w.id !== item.word.id && w.setId !== item.word.setId),
-      ];
-      const distractors: WordItem[] = [];
-      for (const d of distractorPool) {
-        if (distractors.length >= 3) break;
-        if (!distractors.some((x) => x.term.toLowerCase() === d.term.toLowerCase())) {
-          distractors.push(d);
-        }
-      }
-
-      const rawTerms = [item.word.term, ...distractors.map((d) => d.term)];
-      while (rawTerms.length < 4) {
-        rawTerms.push(['came across', 'brought about', 'put off', 'turn down'][rawTerms.length % 4]);
-      }
-
-      // 確定性洗牌，讓正確答案分佈在 A/B/C/D
-      const shift = (idx + logs.length) % 4;
-      const rotated = rawTerms.map((_, i) => rawTerms[(i + shift) % 4]);
-      const options: MultipleChoiceOption[] = labels.map((label, i) => ({
-        label,
-        term: rotated[i],
-      }));
-      const correctOption = options.find((o) => o.term === item.word.term) || options[0];
-
-      chosen = {
-        id: `quiz-dyn-mc-${item.word.id}-${baseLh.questionHash}`,
-        setId: item.word.setId,
-        type: 'multiple_choice_cloze',
-        wordId: item.word.id,
-        sentence: baseLh.sentence,
-        options,
-        correctLabel: correctOption.label,
-        targetTerm: item.word.term,
-        explanation: baseLh.explanation,
-        questionHash: baseLh.questionHash,
-        priorityReason,
-        createdAt: new Date().toISOString(),
-        source: 'dynamic',
-      };
+      usedWordIds.delete(item.word.id);
+      continue;
     }
 
     selectedQuestions.push(chosen);
