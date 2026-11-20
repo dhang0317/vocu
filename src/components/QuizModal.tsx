@@ -965,42 +965,11 @@ export function QuizModal() {
                       : 'border-[#F472B6]/50'
                 }`}
               >
-                {/* Question Header */}
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-lg bg-[#0D110F] border border-white/10 text-xs font-bold text-white flex items-center justify-center">
-                      {idx + 1}
-                    </span>
-                    <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-[#0D110F] text-[#7CE3B3] border border-[#7CE3B3]/30 font-semibold">
-                      提示遮罩：{maskedHint}
-                    </span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-white/5 text-zinc-300">
-                      {q.pos} {isMultiWord ? '多字片語' : '單字'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {q.priorityReason === 'weakness' && (
-                      <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-[#F472B6]/15 text-[#F472B6] font-medium">
-                        <AlertTriangle className="w-3 h-3" />
-                        優先級 1：弱點補強
-                      </span>
-                    )}
-                    {q.priorityReason === 'new' && (
-                      <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-[#7CE3B3]/15 text-[#7CE3B3] font-medium">
-                        <Sparkles className="w-3 h-3" />
-                        優先級 2：未測驗新字
-                      </span>
-                    )}
-                    {q.priorityReason === 'review' && (
-                      <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-[#FBBF24]/15 text-[#FBBF24] font-medium">
-                        優先級 3：久未複習
-                      </span>
-                    )}
-                    <span className="text-[11px] font-mono text-zinc-500">
-                      {q.questionHash}
-                    </span>
-                  </div>
+                {/* Minimal Question Header */}
+                <div className="flex items-center">
+                  <span className="text-xs px-2.5 py-0.5 rounded-md bg-white/5 text-zinc-400">
+                    {q.pos} {isMultiWord ? '多字片語' : '單字'}
+                  </span>
                 </div>
 
                 {/* Sentence with Masked Hint */}
@@ -1014,39 +983,26 @@ export function QuizModal() {
 
                 {/* Input Field (Hidden answers before submit!) */}
                 <div className="space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <input
-                      id={`letter-hint-input-${idx + 1}`}
-                      type="text"
-                      disabled={isSubmitted}
-                      value={userVal}
-                      onChange={(e) =>
-                        setLetterHintInputs((prev) => ({
-                          ...prev,
-                          [q.id]: e.target.value,
-                        }))
-                      }
-                      placeholder={
-                        isMultiWord
-                          ? `輸入完整多字片語（提示：${maskedHint}）`
-                          : `輸入完整單字拼字（提示：${maskedHint}）`
-                      }
-                      className={`flex-1 px-4 py-3 rounded-xl bg-[#0D110F] border text-sm font-mono text-white focus:outline-none transition ${
-                        !isSubmitted
-                          ? 'border-white/15 focus:border-[#7CE3B3]'
-                          : isCorrect
-                            ? 'border-[#7CE3B3] text-[#7CE3B3]'
-                            : 'border-[#F472B6] text-[#F472B6]'
-                      }`}
-                    />
-
-                    {!isSubmitted && (
-                      <div className="text-xs text-zinc-400 flex items-center gap-1.5 shrink-0">
-                        <HelpCircle className="w-3.5 h-3.5 text-zinc-500" />
-                        <span>交卷時自動忽略大小寫與多餘空白</span>
-                      </div>
-                    )}
-                  </div>
+                  <input
+                    id={`letter-hint-input-${idx + 1}`}
+                    type="text"
+                    disabled={isSubmitted}
+                    value={userVal}
+                    onChange={(e) =>
+                      setLetterHintInputs((prev) => ({
+                        ...prev,
+                        [q.id]: e.target.value,
+                      }))
+                    }
+                    placeholder={isMultiWord ? '輸入完整多字片語' : '輸入完整單字拼字'}
+                    className={`w-full px-4 py-3 rounded-xl bg-[#0D110F] border text-sm font-mono text-white focus:outline-none transition ${
+                      !isSubmitted
+                        ? 'border-white/15 focus:border-[#7CE3B3]'
+                        : isCorrect
+                          ? 'border-[#7CE3B3] text-[#7CE3B3]'
+                          : 'border-[#F472B6] text-[#F472B6]'
+                    }`}
+                  />
 
                   {/* Post-Submit Answer & Explanation Reveal */}
                   {isSubmitted && (
