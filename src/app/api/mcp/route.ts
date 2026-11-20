@@ -151,6 +151,25 @@ export async function POST(req: NextRequest) {
                   required: ['words'],
                 },
               },
+              {
+                name: 'create_word_set',
+                description: '建立一個全新的 Vocu 單字集分類卡片，並回傳新建的 setId',
+                inputSchema: {
+                  type: 'object',
+                  properties: {
+                    title: { type: 'string', description: '單字集名稱（例如：二段總單字）' },
+                    color: {
+                      type: 'string',
+                      description: '選填：標籤顏色 Hex (#7CE3B3, #F472B6, #FBBF24, #60A5FA, #A78BFA)',
+                    },
+                    icon: {
+                      type: 'string',
+                      description: '選填：圖示 (book, graduation-cap, briefcase, bookmark, plane, credit-card)',
+                    },
+                  },
+                  required: ['title'],
+                },
+              },
             ],
           },
         },
@@ -311,6 +330,56 @@ export async function POST(req: NextRequest) {
                 {
                   type: 'text',
                   text: `成功新增 ${created.length} 筆單字至單字集 (${targetSetId})。`,
+                },
+              ],
+            },
+          },
+          { headers: CORS_HEADERS }
+        );
+      }
+
+      if (toolName === 'create_word_set') {
+        const title = String(args.title || '新單字集').trim();
+        const color = String(args.color || '#7CE3B3').trim();
+        const icon = String(args.icon || 'book').trim() as
+          | 'book'
+          | 'graduation-cap'
+          | 'briefcase'
+          | 'bookmark'
+          | 'plane'
+          | 'credit-card';
+
+        const newSet = {
+          id: `set-mcp-${Date.now()}`,
+          title,
+          color,
+          icon,
+          createdAt: new Date().toISOString(),
+        };
+
+        await saveWorkspaceToFirestore({
+          ...workspace,
+          wordSets: [newSet, ...workspace.wordSets],
+          updatedAt: new Date().toISOString(),
+        });
+
+        return NextResponse.json(
+          {
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(
+                    {
+                      message: `成功建立全新單字集「${title}」`,
+                      setId: newSet.id,
+                      wordSet: newSet,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             },
