@@ -164,22 +164,31 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
   }, [recentSetId, isHydrated]);
 
   // Subscribe to Cloud Firestore in real time so MCP Agent pushes appear immediately
-  const hasLoadedFirestoreRef = React.useRef(false);
+  const isRemoteUpdateRef = React.useRef(false);
+  const hasMountedRef = React.useRef(false);
+
   useEffect(() => {
     const unsubscribe = subscribeWorkspaceFromFirestore((remote) => {
+      isRemoteUpdateRef.current = true;
       if (Array.isArray(remote.wordSets)) setWordSets(remote.wordSets);
       if (Array.isArray(remote.words)) setWords(remote.words);
       if (Array.isArray(remote.practiceLogs)) setPracticeLogs(remote.practiceLogs);
       if (Array.isArray(remote.quizBank)) setQuizBank(remote.quizBank);
       if (remote.settings) setSettings({ ...INITIAL_USER_SETTINGS, ...remote.settings });
-      hasLoadedFirestoreRef.current = true;
+      setTimeout(() => {
+        isRemoteUpdateRef.current = false;
+      }, 100);
     });
-    hasLoadedFirestoreRef.current = true;
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (!hasLoadedFirestoreRef.current) return;
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    if (isRemoteUpdateRef.current) return;
+
     const timer = setTimeout(() => {
       saveWorkspaceToFirestore({
         wordSets,
