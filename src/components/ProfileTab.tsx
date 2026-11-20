@@ -34,6 +34,11 @@ export function ProfileTab() {
 
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedConfig, setCopiedConfig] = useState(false);
+
+  const liveMcpUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/api/mcp`
+      : settings.mcpServerUrl;
   const [backupMessage, setBackupMessage] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -44,7 +49,7 @@ export function ProfileTab() {
 
   const handleCopyMcpUrl = async () => {
     try {
-      await navigator.clipboard.writeText(settings.mcpServerUrl);
+      await navigator.clipboard.writeText(liveMcpUrl);
       setCopiedUrl(true);
       setTimeout(() => setCopiedUrl(false), 2000);
     } catch {
@@ -58,7 +63,7 @@ export function ProfileTab() {
       mcpServers: {
         vocu: {
           command: 'npx',
-          args: ['-y', '@vocu/mcp-bridge', '--url', settings.mcpServerUrl],
+          args: ['-y', '@vocu/mcp-bridge', '--url', liveMcpUrl],
         },
       },
     },
