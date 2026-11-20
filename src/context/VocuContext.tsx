@@ -350,9 +350,20 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
     const unsubSub = subscribeMcpQuizzesFromSubcollection((subItems) => {
       if (subItems.length === 0) return;
       isRemoteUpdateRef.current = true;
+      const normalizedSub = subItems.map((q) => {
+        const raw = q as unknown as Record<string, unknown>;
+        const t = String(raw.type || '').toLowerCase();
+        const questionHash =
+          String(raw.questionHash || '').trim() ||
+          computeQuestionHash(String(raw.passage || raw.sentence || raw.id || ''));
+        if (t === 'word_bank_cloze' || (raw.passage && Array.isArray(raw.answers))) {
+          return { ...raw, type: 'word_bank_cloze' as const, questionHash } as QuizItem;
+        }
+        return { ...raw, questionHash } as QuizItem;
+      });
       setQuizBank((prev) => {
         const map = new Map(prev.map((q) => [q.id, q]));
-        subItems.forEach((item) => map.set(item.id, item));
+        normalizedSub.forEach((item) => map.set(item.id, item));
         return Array.from(map.values());
       });
       setTimeout(() => {
