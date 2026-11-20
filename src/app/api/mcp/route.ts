@@ -579,6 +579,50 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      if (toolName === 'delete_quiz_items') {
+        const quizIds = Array.isArray(args.quizIds)
+          ? args.quizIds.map((x: unknown) => String(x).trim()).filter(Boolean)
+          : [];
+        if (quizIds.length === 0) {
+          return NextResponse.json(
+            {
+              jsonrpc: '2.0',
+              id,
+              error: { code: -32602, message: '請提供要刪除的 quizIds 陣列' },
+            },
+            { headers: CORS_HEADERS }
+          );
+        }
+
+        const delRes = await deleteMcpQuizzesFromSubcollection(quizIds);
+        if (!delRes.ok) {
+          return NextResponse.json(
+            {
+              jsonrpc: '2.0',
+              id,
+              error: { code: -32603, message: `刪除失敗: ${delRes.error}` },
+            },
+            { headers: CORS_HEADERS }
+          );
+        }
+
+        return NextResponse.json(
+          {
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: `已成功從題庫刪除 ${quizIds.length} 筆題目。`,
+                },
+              ],
+            },
+          },
+          { headers: CORS_HEADERS }
+        );
+      }
+
       return NextResponse.json(
         {
           jsonrpc: '2.0',
