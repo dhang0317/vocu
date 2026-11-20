@@ -21,6 +21,7 @@ import {
   subscribeWorkspaceFromFirestore,
   saveWorkspaceToFirestore,
   subscribeMcpQuizzesFromSubcollection,
+  saveMcpQuizzesToSubcollection,
 } from '@/lib/firestoreSync';
 import { computeQuestionHash } from '@/lib/masking';
 
@@ -312,7 +313,30 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
             questionHash,
           };
         });
-        setQuizBank(normalizedQuizzes as QuizItem[]);
+        const typedQuizzes = normalizedQuizzes as QuizItem[];
+        setQuizBank((prev) => {
+          const map = new Map(prev.map((q) => [q.id, q]));
+          typedQuizzes.forEach((item) => map.set(item.id, item));
+          return Array.from(map.values());
+        });
+
+        // 自動將主文件內的舊題庫遷移至 quizzes 子集合，釋放主文件 1MB 空間
+        if (typedQuizzes.length > 0) {
+          saveMcpQuizzesToSubcollection(typedQuizzes).then((res) => {
+            if (res.ok) {
+              saveWorkspaceToFirestore({
+                wordSets: Array.isArray(remote.wordSets) ? remote.wordSets : wordSets,
+                words: Array.isArray(remote.words) ? remote.words : words,
+                practiceLogs: Array.isArray(remote.practiceLogs)
+                  ? remote.practiceLogs
+                  : practiceLogs,
+                quizBank: [],
+                settings: remote.settings || settings,
+                updatedAt: new Date().toISOString(),
+              });
+            }
+          });
+        }
       }
       if (remote.settings) setSettings({ ...INITIAL_USER_SETTINGS, ...remote.settings });
       setTimeout(() => {
