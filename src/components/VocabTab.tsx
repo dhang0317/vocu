@@ -53,6 +53,7 @@ export function VocabTab() {
 
   // 單字集內頁的子頁籤 ('words' | 'quizzes')
   const [detailSubTab, setDetailSubTab] = useState<'words' | 'quizzes'>('words');
+  const [visibleQuizCount, setVisibleQuizCount] = useState(30);
 
   // 新增/編輯單字表單狀態
   const [isWordFormOpen, setIsWordFormOpen] = useState(false);
@@ -514,22 +515,73 @@ export function VocabTab() {
                 </p>
               </div>
             ) : (
-              setQuizzes.map((quiz) => {
-                const isAnswered = practiceLogs.some(
-                  (l) => l.questionHash === quiz.questionHash
-                );
-                if (quiz.type === 'word_bank_cloze') {
+              <>
+                {setQuizzes.slice(0, visibleQuizCount).map((quiz) => {
+                  const isAnswered = practiceLogs.some(
+                    (l) => l.questionHash === quiz.questionHash
+                  );
+                  if (quiz.type === 'word_bank_cloze') {
+                    return (
+                      <div
+                        key={quiz.id}
+                        className="bg-[#161B18] border border-white/10 rounded-2xl p-5 space-y-3"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#7CE3B3]/15 text-[#7CE3B3]">
+                              文意選填 (10 格短文)
+                            </span>
+                            <span className="text-sm font-bold text-white">{quiz.title}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-mono text-zinc-500">
+                              {quiz.questionHash}
+                            </span>
+                            <span
+                              className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                                isAnswered
+                                  ? 'bg-zinc-800 text-zinc-400'
+                                  : 'bg-[#7CE3B3]/15 text-[#7CE3B3]'
+                              }`}
+                            >
+                              {isAnswered ? '已作答過 (防重複已標記)' : '全新未作答'}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-zinc-300 leading-relaxed line-clamp-3">
+                          {quiz.passage}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {quiz.options.map((opt) => (
+                            <span
+                              key={opt.letter}
+                              className="text-[11px] px-2 py-0.5 rounded-md bg-[#0D110F] border border-white/10 text-zinc-300"
+                            >
+                              ({opt.letter}) {opt.term}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
                     <div
                       key={quiz.id}
-                      className="bg-[#161B18] border border-white/10 rounded-2xl p-5 space-y-3"
+                      className="bg-[#161B18] border border-white/10 rounded-2xl p-5 space-y-2.5"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#7CE3B3]/15 text-[#7CE3B3]">
-                            文意選填 (10 格短文)
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#60A5FA]/15 text-[#60A5FA]">
+                            {quiz.type === 'letter_hint_cloze'
+                              ? '文意字彙 (首尾字母提示)'
+                              : '單句克漏字 (四選一)'}
                           </span>
-                          <span className="text-sm font-bold text-white">{quiz.title}</span>
+                          <span className="text-xs font-mono text-[#7CE3B3]">
+                            {quiz.type === 'letter_hint_cloze'
+                              ? `遮罩：${generateLetterHintMask(quiz.targetTerm)}`
+                              : `答案：${quiz.correctLabel}. ${quiz.targetTerm}`}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] font-mono text-zinc-500">
@@ -546,66 +598,31 @@ export function VocabTab() {
                           </span>
                         </div>
                       </div>
-                      <p className="text-xs text-zinc-300 leading-relaxed line-clamp-3">
-                        {quiz.passage}
+                      <p className="text-sm text-zinc-200 leading-relaxed">
+                        {quiz.sentence.replace(
+                          '{{BLANK}}',
+                          quiz.type === 'letter_hint_cloze'
+                            ? `[ ${generateLetterHintMask(quiz.targetTerm)} ]`
+                            : '________'
+                        )}
                       </p>
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {quiz.options.map((opt) => (
-                          <span
-                            key={opt.letter}
-                            className="text-[11px] px-2 py-0.5 rounded-md bg-[#0D110F] border border-white/10 text-zinc-300"
-                          >
-                            ({opt.letter}) {opt.term}
-                          </span>
-                        ))}
-                      </div>
+                      <p className="text-xs text-zinc-400">
+                        {quiz.type === 'letter_hint_cloze'
+                          ? `提示釋義：${quiz.chineseHint}（詞性：${quiz.pos}）`
+                          : `正確答案：${quiz.correctLabel}. ${quiz.targetTerm}`}
+                      </p>
                     </div>
                   );
-                }
-
-                return (
-                  <div
-                    key={quiz.id}
-                    className="bg-[#161B18] border border-white/10 rounded-2xl p-5 space-y-2.5"
+                })}
+                {setQuizzes.length > visibleQuizCount && (
+                  <button
+                    onClick={() => setVisibleQuizCount((c) => c + 30)}
+                    className="w-full py-3 rounded-2xl bg-[#161B18] hover:bg-white/5 border border-white/10 text-xs font-semibold text-[#7CE3B3] transition cursor-pointer"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#60A5FA]/15 text-[#60A5FA]">
-                          文意字彙 (首尾字母提示)
-                        </span>
-                        <span className="text-xs font-mono text-[#7CE3B3]">
-                          遮罩：{generateLetterHintMask(quiz.targetTerm)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-mono text-zinc-500">
-                          {quiz.questionHash}
-                        </span>
-                        <span
-                          className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                            isAnswered
-                              ? 'bg-zinc-800 text-zinc-400'
-                              : 'bg-[#7CE3B3]/15 text-[#7CE3B3]'
-                          }`}
-                        >
-                          {isAnswered ? '已作答過 (防重複已標記)' : '全新未作答'}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-zinc-200 leading-relaxed">
-                      {quiz.sentence.replace(
-                        '{{BLANK}}',
-                        `[ ${generateLetterHintMask(quiz.targetTerm)} ]`
-                      )}
-                    </p>
-                    <p className="text-xs text-zinc-400">
-                      {quiz.type === 'letter_hint_cloze'
-                        ? `提示釋義：${quiz.chineseHint}（詞性：${quiz.pos}）`
-                        : `正確答案：${quiz.correctLabel}. ${quiz.targetTerm}`}
-                    </p>
-                  </div>
-                );
-              })
+                    顯示更多題目（目前顯示 {visibleQuizCount} / 共 {setQuizzes.length} 題）
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}
