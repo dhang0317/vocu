@@ -189,16 +189,37 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
         const normalizedQuizzes = remote.quizBank.map((q) => {
           const raw = q as unknown as Record<string, unknown>;
           const t = String(raw.type || '').toLowerCase();
-          if (t === 'word_bank_cloze' || t === 'letter_hint_cloze' || t === 'multiple_choice_cloze') {
-            return q;
+
+          const sentence = String(
+            raw.sentence || raw.question || raw.prompt || raw.text || ''
+          );
+          const targetTerm = String(
+            raw.targetTerm || raw.answer || raw.word || raw.term || ''
+          );
+          const chineseHint = String(
+            raw.chineseHint || raw.hint || raw.definition || raw.translation || ''
+          );
+
+          if (t === 'word_bank_cloze' || (raw.passage && Array.isArray(raw.answers))) {
+            return { ...raw, type: 'word_bank_cloze' as const };
           }
-          if (raw.passage && Array.isArray(raw.answers)) {
-            return { ...q, type: 'word_bank_cloze' as const };
+          if (t === 'multiple_choice_cloze' || (Array.isArray(raw.options) && raw.options.length === 4)) {
+            return {
+              ...raw,
+              type: 'multiple_choice_cloze' as const,
+              sentence,
+              targetTerm,
+            };
           }
-          if (Array.isArray(raw.options) && raw.options.length === 4) {
-            return { ...q, type: 'multiple_choice_cloze' as const };
-          }
-          return { ...q, type: 'letter_hint_cloze' as const };
+          return {
+            ...raw,
+            type: 'letter_hint_cloze' as const,
+            sentence,
+            targetTerm,
+            baseTerm: String(raw.baseTerm || targetTerm),
+            pos: String(raw.pos || ''),
+            chineseHint,
+          };
         });
         setQuizBank(normalizedQuizzes as QuizItem[]);
       }

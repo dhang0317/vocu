@@ -671,7 +671,7 @@ export function QuizModal() {
             {questions.map((q, idx) => {
               const chosenLabel = mcSelections[q.id];
               const isCorrect = isSubmitted && chosenLabel === q.correctLabel;
-              const parts = q.sentence.split('{{BLANK}}');
+              const parts = (q.sentence || '').split('{{BLANK}}');
 
               return (
                 <div
@@ -963,13 +963,13 @@ export function QuizModal() {
         <form onSubmit={handleSubmitLetterHint} className="space-y-4">
           {questions.map((q, idx) => {
             const maskedHint = generateLetterHintMask(q.targetTerm);
-            const isMultiWord = q.targetTerm.trim().includes(' ');
+            const isMultiWord = (q.targetTerm || '').trim().includes(' ');
             const userVal = letterHintInputs[q.id] || '';
             const isCorrect =
               isSubmitted &&
-              checkLetterHintAnswer(userVal, q.targetTerm, q.baseTerm);
+              checkLetterHintAnswer(userVal, q.targetTerm || '', q.baseTerm);
 
-            const parts = q.sentence.split('{{BLANK}}');
+            const parts = (q.sentence || '').split('{{BLANK}}');
             const updatedWord = words.find((w) => w.id === q.wordId);
             const updatedPriority = updatedWord
               ? analyzeWordPriority(
