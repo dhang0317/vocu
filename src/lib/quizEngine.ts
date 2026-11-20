@@ -237,7 +237,12 @@ export function buildLetterHintQuizSession(params: {
     else reviewCount++;
 
     // 尋找該單字在題庫中尚未被做過 (questionHash 不在 PracticeLog) 的題目
-    const matchingQuizzes = existingLetterQuizzes.filter((q) => q.wordId === item.word.id);
+    const termLower = item.word.term.trim().toLowerCase();
+    const matchingQuizzes = existingLetterQuizzes.filter(
+      (q) =>
+        q.wordId === item.word.id ||
+        (q.targetTerm && q.targetTerm.trim().toLowerCase() === termLower)
+    );
     let chosenQuiz: LetterHintClozeQuiz | null = null;
 
     for (const candidate of matchingQuizzes) {
@@ -441,7 +446,12 @@ export function buildMultipleChoiceQuizSession(params: {
     else reviewCount++;
 
     let chosen: MultipleChoiceClozeQuiz | null = null;
-    for (const candidate of existingMcQuizzes.filter((q) => q.wordId === item.word.id)) {
+    const termLower = item.word.term.trim().toLowerCase();
+    for (const candidate of existingMcQuizzes.filter(
+      (q) =>
+        q.wordId === item.word.id ||
+        (q.targetTerm && q.targetTerm.trim().toLowerCase() === termLower)
+    )) {
       if (answeredHashes.has(candidate.questionHash)) {
         excludedDuplicateHashes++;
       } else {
