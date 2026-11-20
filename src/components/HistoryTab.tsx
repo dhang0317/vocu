@@ -93,39 +93,24 @@ export function HistoryTab() {
 
   return (
     <div className="space-y-6 pb-24">
-      {/* Header & Retest Wrong Words Action */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-[#7CE3B3] mb-1">
-            LEARNING HISTORY & ADAPTIVE WEIGHTS
-          </p>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            作答記錄與錯題本
-          </h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            所有交卷記錄皆會即時更新單字出題權重，自動排除已做過題幹並優先複習弱點
-          </p>
-        </div>
-
-        {/* 一鍵針對錯題重新測驗按鈕 */}
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          <button
-            id="retest-wrong-letter-btn"
-            onClick={() =>
-              startQuiz({
-                setId: selectedSetFilter,
-                questionType: 'letter_hint_cloze',
-                onlyWrongWords: true,
-                questionCount: 5,
-              })
-            }
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-xs shadow-sm transition cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>針對錯題重新測驗 ({weaknessWordsCount})</span>
-          </button>
-        </div>
-      </header>
+      {/* Retest Wrong Words Action */}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <button
+          id="retest-wrong-letter-btn"
+          onClick={() =>
+            startQuiz({
+              setId: selectedSetFilter,
+              questionType: 'letter_hint_cloze',
+              onlyWrongWords: true,
+              questionCount: 5,
+            })
+          }
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-xs shadow-sm transition cursor-pointer"
+        >
+          <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+          <span>針對錯題重新測驗 ({weaknessWordsCount})</span>
+        </button>
+      </div>
 
       {/* Summary Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
