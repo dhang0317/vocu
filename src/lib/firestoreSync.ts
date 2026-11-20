@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 import { WordSet, WordItem, PracticeLog, QuizItem, UserSettings } from '@/types/vocu';
 
@@ -57,5 +57,56 @@ export async function saveWorkspaceToFirestore(
   } catch (err) {
     console.error('Firestore save error:', err);
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export async function saveMcpQuizzesToSubcollection(
+  items: QuizItem[]
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const colRef = collection(db, WORKSPACE_COLLECTION, DEFAULT_DOC_ID, 'quizzes');
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Firestore subcollection write timeout (10s)')), 10000)
+    );
+    const writes = Promise.all(
+      items.map((item) => {
+        const cleanItem = JSON.parse(JSON.stringify(item));
+        return setDoc(doc(colRef, item.id), cleanItem, { merge: true });
+      })
+    );
+    await Promise.race([writes, timeoutPromise]);
+    return { ok: true };
+  } catch (err) {
+    console.error('Firestore subcollection save error:', err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export function subscribeMcpQuizzesFromSubcollection(
+  onUpdate: (items: QuizItem[]) => void
+): () => void {
+  const colRef = collection(db, WORKSPACE_COLLECTION, DEFAULT_DOC_ID, 'quizzes');
+  return onSnapshot(
+    colRef,
+    (snap) => {
+      const items: QuizItem[] = [];
+      snap.forEach((d) => items.push(d.data() as QuizItem));
+      onUpdate(items);
+    },
+    (err) => {
+      console.error('Firestore subcollection snapshot error:', err);
+    }
+  );
+}
+
+export async function loadMcpQuizzesFromSubcollection(): Promise<QuizItem[]> {
+  try {
+    const colRef = collection(db, WORKSPACE_COLLECTION, DEFAULT_DOC_ID, 'quizzes');
+    const snap = await getDocs(colRef);
+    const items: QuizItem[] = [];
+    snap.forEach((d) => items.push(d.data() as QuizItem));
+    return items;
+  } catch {
+    return [];
   }
 }

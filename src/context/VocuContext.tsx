@@ -20,6 +20,7 @@ import {
 import {
   subscribeWorkspaceFromFirestore,
   saveWorkspaceToFirestore,
+  subscribeMcpQuizzesFromSubcollection,
 } from '@/lib/firestoreSync';
 import { computeQuestionHash } from '@/lib/masking';
 
@@ -319,6 +320,22 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
       }, 100);
     });
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const unsubSub = subscribeMcpQuizzesFromSubcollection((subItems) => {
+      if (subItems.length === 0) return;
+      isRemoteUpdateRef.current = true;
+      setQuizBank((prev) => {
+        const map = new Map(prev.map((q) => [q.id, q]));
+        subItems.forEach((item) => map.set(item.id, item));
+        return Array.from(map.values());
+      });
+      setTimeout(() => {
+        isRemoteUpdateRef.current = false;
+      }, 100);
+    });
+    return () => unsubSub();
   }, []);
 
   useEffect(() => {

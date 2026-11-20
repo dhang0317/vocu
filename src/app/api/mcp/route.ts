@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   loadWorkspaceFromFirestore,
   saveWorkspaceToFirestore,
+  saveMcpQuizzesToSubcollection,
 } from '@/lib/firestoreSync';
 import {
   INITIAL_WORD_SETS,
@@ -369,12 +370,7 @@ export async function POST(req: NextRequest) {
           };
         });
 
-        const updatedBank = [...normalizedIncoming, ...workspace.quizBank];
-        const saveRes = await saveWorkspaceToFirestore({
-          ...workspace,
-          quizBank: updatedBank,
-          updatedAt: new Date().toISOString(),
-        });
+        const saveRes = await saveMcpQuizzesToSubcollection(normalizedIncoming as QuizItem[]);
 
         if (!saveRes.ok) {
           return NextResponse.json(
