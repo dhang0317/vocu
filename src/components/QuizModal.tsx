@@ -89,7 +89,44 @@ export function QuizModal() {
   // 題型一：文意選填 (Word Bank Cloze) 互動與交卷邏輯
   // ==========================================================
   if (sessionData.type === 'word_bank_cloze') {
-    const { quiz, selectionSummary } = sessionData;
+    const { quiz, unavailableReason, selectionSummary } = sessionData;
+
+    if (!quiz) {
+      return (
+        <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-[#161B18] border border-white/10 rounded-2xl p-8 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#FBBF24]/15 text-[#FBBF24] flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-white">尚無專屬文意選填短文</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              {unavailableReason}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <button
+                onClick={closeQuiz}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#0D110F] border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer"
+              >
+                返回
+              </button>
+              <button
+                onClick={() => {
+                  setIsSubmitted(false);
+                  setLetterHintInputs({});
+                  setSessionSeed((s) => s + 1);
+                  setActiveTab('home');
+                  closeQuiz();
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+              >
+                改用文意字彙測驗
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     const filledCount = Object.keys(wordBankSelections).length;
 
     // 反向索引：哪一個選項字母已被用於第幾格
@@ -144,7 +181,12 @@ export function QuizModal() {
       const entries = quiz.answers.map((ans) => {
         const chosenLetter = wordBankSelections[ans.blankNumber] || '';
         const chosenOpt = optionByLetter.get(chosenLetter);
-        const isCorrect = chosenLetter === ans.optionLetter;
+        const isCorrect = Boolean(
+          chosenOpt &&
+            (chosenOpt.correctBlankIndex === ans.blankNumber ||
+              chosenOpt.wordId === ans.wordId ||
+              chosenLetter === ans.optionLetter)
+        );
         return {
           wordId: ans.wordId,
           setId: quiz.setId,

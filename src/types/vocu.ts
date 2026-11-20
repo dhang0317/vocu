@@ -40,6 +40,7 @@ export interface WordBankOption {
   term: string; // Surface form in option bank
   pos: string;
   definition: string;
+  correctBlankIndex?: number; // 1 to 10, bound to the passage blank
 }
 
 export interface WordBankBlankAnswer {

@@ -266,6 +266,54 @@ export async function POST(req: NextRequest) {
 
       if (toolName === 'push_quiz_items') {
         const incoming = (Array.isArray(args.items) ? args.items : []) as QuizItem[];
+
+        // Pre-save validation for word_bank_cloze items
+        for (const item of incoming) {
+          if (item.type === 'word_bank_cloze') {
+            const blankMatches = item.passage?.match(/\(\d+\)\s*______/g) || [];
+            if (blankMatches.length !== 10) {
+              return NextResponse.json(
+                {
+                  jsonrpc: '2.0',
+                  id,
+                  error: {
+                    code: -32602,
+                    message: `Pre-save validation failed: 文意選填短文必須嚴格包含 10 個空格佔位符 (1) ______ ～ (10) ______，目前偵測到 ${blankMatches.length} 個。`,
+                  },
+                },
+                { status: 400, headers: CORS_HEADERS }
+              );
+            }
+            if (!Array.isArray(item.options) || item.options.length !== 10 || !Array.isArray(item.answers) || item.answers.length !== 10) {
+              return NextResponse.json(
+                {
+                  jsonrpc: '2.0',
+                  id,
+                  error: {
+                    code: -32602,
+                    message: 'Pre-save validation failed: options 與 answers 陣列長度必須皆為 10。',
+                  },
+                },
+                { status: 400, headers: CORS_HEADERS }
+              );
+            }
+            const uniqueTerms = new Set(item.options.map((o) => o.term?.toLowerCase().trim()));
+            if (uniqueTerms.size !== 10) {
+              return NextResponse.json(
+                {
+                  jsonrpc: '2.0',
+                  id,
+                  error: {
+                    code: -32602,
+                    message: 'Pre-save validation failed: 10 個選項單字不可重複。',
+                  },
+                },
+                { status: 400, headers: CORS_HEADERS }
+              );
+            }
+          }
+        }
+
         const updatedBank = [...incoming, ...workspace.quizBank];
         await saveWorkspaceToFirestore({
           ...workspace,

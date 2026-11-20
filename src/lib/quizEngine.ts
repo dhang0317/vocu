@@ -6,8 +6,6 @@ import {
   WordBankClozeQuiz,
   WordWeightStatus,
   UserSettings,
-  WordBankOption,
-  WordBankBlankAnswer,
 } from '@/types/vocu';
 import { computeQuestionHash } from './masking';
 
@@ -414,7 +412,8 @@ export function buildWordBankQuizSession(params: {
   settings: UserSettings;
   onlyWrongWords?: boolean;
 }): {
-  quiz: WordBankClozeQuiz;
+  quiz: WordBankClozeQuiz | null;
+  unavailableReason?: string;
   selectionSummary: {
     weaknessCount: number;
     newCount: number;
@@ -431,175 +430,72 @@ export function buildWordBankQuizSession(params: {
   const skippedCooldownCount = allAnalyzed.filter((a) => a.status === 'cooldown').length;
   const analysisMap = new Map(allAnalyzed.map((a) => [a.word.id, a]));
 
-  // 如果不是強制「只測錯題」，先檢查題庫中是否有該單字集尚未做過的 10 格文意選填短文
-  if (!onlyWrongWords) {
-    const availablePassages = quizBank.filter(
-      (q): q is WordBankClozeQuiz =>
-        q.type === 'word_bank_cloze' &&
-        (setId === 'all' || q.setId === setId) &&
-        !answeredHashes.has(q.questionHash)
-    );
-
-    if (availablePassages.length > 0) {
-      // 根據短文所包含的弱點與新字權重評分，挑選最契合當前學習需求的一篇
-      const scoredPassages = availablePassages.map((p) => {
-        let score = 0;
-        let wCount = 0;
-        let nCount = 0;
-        let rCount = 0;
-        for (const ans of p.answers) {
-          const info = analysisMap.get(ans.wordId);
-          if (!info || info.status === 'untested') {
-            score += 20;
-            nCount++;
-          } else if (info.status === 'weakness') {
-            score += 35 * settings.weaknessMultiplier;
-            wCount++;
-          } else if (info.status === 'due_review') {
-            score += 10;
-            rCount++;
-          } else if (info.status === 'cooldown') {
-            score -= 15;
-          }
-        }
-        return { quiz: p, score, wCount, nCount, rCount };
-      });
-
-      scoredPassages.sort((a, b) => b.score - a.score);
-      const best = scoredPassages[0];
-
-      return {
-        quiz: best.quiz,
-        selectionSummary: {
-          weaknessCount: best.wCount,
-          newCount: best.nCount,
-          reviewCount: best.rCount,
-          skippedCooldownCount,
-          isFreshPassage: true,
-        },
-      };
-    }
-  }
-
-  // 當既有短文都已做過，或使用者新增了自己的單字集/要求錯題重組時：
-  // 根據優先級 1 -> 2 -> 3 抽取 10 個不重複單字（若該單字集不足 10 字，從其他單字集補齊至 10 字）
-  let candidatePool = [...setWords];
-  if (candidatePool.length < 10) {
-    const extraWords = words.filter((w) => !candidatePool.some((c) => c.id === w.id));
-    candidatePool = [...candidatePool, ...extraWords];
-  }
-
-  const ranked10 = rankWordsForQuiz(candidatePool, logs, settings, {
-    onlyWrongWords,
-    includeCooldownIfInsufficient: true,
-    targetCount: 10,
-  });
-
-  // 若 onlyWrongWords 過濾後不足 10 個，再由非錯題依優先級補齊至 10 個不重複單字
-  if (ranked10.length < 10) {
-    const fallbackRanked = rankWordsForQuiz(candidatePool, logs, settings, {
-      onlyWrongWords: false,
-      includeCooldownIfInsufficient: true,
-      targetCount: 10,
-    });
-    for (const item of fallbackRanked) {
-      if (ranked10.length >= 10) break;
-      if (!ranked10.some((r) => r.word.id === item.word.id)) {
-        ranked10.push(item);
-      }
-    }
-  }
-
-  let weaknessCount = 0;
-  let newCount = 0;
-  let reviewCount = 0;
-
-  ranked10.forEach((item) => {
-    if (item.status === 'weakness') weaknessCount++;
-    else if (item.status === 'untested') newCount++;
-    else reviewCount++;
-  });
-
-  // 產生 10 個被打亂順序的選項 (A) ~ (J)
-  const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-  // 以固定但與時間軸相關的順序洗牌選項，確保選項順序與題號 (1)~(10) 不同
-  const shuffledForOptions = [...ranked10].sort((a, b) =>
-    a.word.term.localeCompare(b.word.term)
+  const availablePassages = quizBank.filter(
+    (q): q is WordBankClozeQuiz =>
+      q.type === 'word_bank_cloze' &&
+      (setId === 'all' || q.setId === setId) &&
+      !answeredHashes.has(q.questionHash)
   );
 
-  const options: WordBankOption[] = shuffledForOptions.map((item, idx) => ({
-    letter: letters[idx],
-    wordId: item.word.id,
-    term: item.word.term,
-    pos: item.word.pos,
-    definition: item.word.definition,
-  }));
-
-  const optionByWordId = new Map(options.map((o) => [o.wordId, o]));
-
-  // 組裝 10 格連貫短文與對應解析
-  const passageSentences: string[] = [
-    'In a rapidly evolving global landscape, researchers and practitioners frequently encounter complex challenges that demand thoughtful analysis.',
-  ];
-  const answers: WordBankBlankAnswer[] = [];
-
-  const blankFrames = [
-    'First, experts must address the central (1) ______ regarding how modern systems adapt to unexpected stress.',
-    'Without clear data, effective solutions are often (2) ______ when teams need them most.',
-    'Furthermore, decision-makers need to evaluate every critical (3) ______ before launching a major initiative.',
-    'Adopting a truly (4) ______ strategy ensures that resources are not exhausted prematurely.',
-    'Observers have also noted a remarkable global (5) ______ reshaping how communities collaborate across borders.',
-    'While structural change is often (6) ______, proactive preparation can reduce its negative impact.',
-    'At the same time, stakeholders must reach a balanced (7) ______ rather than pursuing narrow interests.',
-    'We should never (8) ______ the foundational stability built by previous generations of innovators.',
-    'Protecting the most (9) ______ members of society remains a top priority during periods of transition.',
-    'Ultimately, these collective efforts help (10) ______ core knowledge and resilience for the future.',
-  ];
-
-  ranked10.forEach((item, index) => {
-    const blankNum = index + 1;
-    const opt = optionByWordId.get(item.word.id)!;
-    const sentenceFrame = blankFrames[index].replace(
-      `(${blankNum}) ______`,
-      `(${blankNum}) ______`
-    );
-    passageSentences.push(sentenceFrame);
-
-    answers.push({
-      blankNumber: blankNum,
-      optionLetter: opt.letter,
-      wordId: item.word.id,
-      term: item.word.term,
-      explanation: `第 (${blankNum}) 格應填入 (${opt.letter}) ${item.word.term} (${item.word.pos} ${item.word.definition})。系統選字原因：【${item.statusLabel}】${item.reasonText}。`,
+  if (availablePassages.length > 0 && !onlyWrongWords) {
+    const scoredPassages = availablePassages.map((p) => {
+      let score = 0;
+      let wCount = 0;
+      let nCount = 0;
+      let rCount = 0;
+      for (const ans of p.answers) {
+        const info = analysisMap.get(ans.wordId);
+        if (!info || info.status === 'untested') {
+          score += 20;
+          nCount++;
+        } else if (info.status === 'weakness') {
+          score += 35 * settings.weaknessMultiplier;
+          wCount++;
+        } else if (info.status === 'due_review') {
+          score += 10;
+          rCount++;
+        } else if (info.status === 'cooldown') {
+          score -= 15;
+        }
+      }
+      return { quiz: p, score, wCount, nCount, rCount };
     });
-  });
 
-  const fullPassage = passageSentences.join(' ');
-  const questionHash = computeQuestionHash(`${fullPassage}:${logs.length}`);
+    scoredPassages.sort((a, b) => b.score - a.score);
+    const best = scoredPassages[0];
 
-  const dynamicQuiz: WordBankClozeQuiz = {
-    id: `quiz-wb-dyn-${Date.now()}`,
-    setId: setId === 'all' ? (ranked10[0]?.word.setId ?? 'set-core-academic') : setId,
-    type: 'word_bank_cloze',
-    title: onlyWrongWords
-      ? '弱點錯題專屬・AI 動態重組文意選填'
-      : '動態防重複組題・綜合語境文意選填',
-    passage: fullPassage,
-    questionHash,
-    options,
-    answers,
-    createdAt: new Date().toISOString(),
-    source: 'dynamic',
-  };
+    // 確保每個選項物件都綁定 correctBlankIndex
+    const answerByWordId = new Map(best.quiz.answers.map((a) => [a.wordId, a.blankNumber]));
+    const boundQuiz: WordBankClozeQuiz = {
+      ...best.quiz,
+      options: best.quiz.options.map((opt) => ({
+        ...opt,
+        correctBlankIndex: opt.correctBlankIndex ?? answerByWordId.get(opt.wordId),
+      })),
+    };
+
+    return {
+      quiz: boundQuiz,
+      selectionSummary: {
+        weaknessCount: best.wCount,
+        newCount: best.nCount,
+        reviewCount: best.rCount,
+        skippedCooldownCount,
+        isFreshPassage: true,
+      },
+    };
+  }
 
   return {
-    quiz: dynamicQuiz,
+    quiz: null,
+    unavailableReason:
+      '此單字集目前沒有尚未作答的專屬 10 格「文意選填」短文。為避免題幹與選項語境錯置，系統已停用通用模板；請先請 Gemini 透過 MCP 生成專屬短文，或直接切換為「文意字彙」測驗！',
     selectionSummary: {
-      weaknessCount,
-      newCount,
-      reviewCount,
+      weaknessCount: 0,
+      newCount: 0,
+      reviewCount: 0,
       skippedCooldownCount,
-      isFreshPassage: true,
+      isFreshPassage: false,
     },
   };
 }
