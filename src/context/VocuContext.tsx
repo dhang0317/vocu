@@ -17,6 +17,10 @@ import {
   INITIAL_QUIZ_BANK,
   INITIAL_USER_SETTINGS,
 } from '@/lib/seedData';
+import {
+  loadWorkspaceFromFirestore,
+  saveWorkspaceToFirestore,
+} from '@/lib/firestoreSync';
 
 export type NavTab = 'home' | 'vocab' | 'history' | 'profile';
 
@@ -158,6 +162,41 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
     if (!isHydrated) return;
     localStorage.setItem(STORAGE_KEYS.RECENT_SET, recentSetId);
   }, [recentSetId, isHydrated]);
+
+  // Load from Cloud Firestore on mount & sync changes back to Firestore
+  const hasLoadedFirestoreRef = React.useRef(false);
+  useEffect(() => {
+    let active = true;
+    loadWorkspaceFromFirestore().then((remote) => {
+      if (!active) return;
+      if (remote) {
+        if (Array.isArray(remote.wordSets)) setWordSets(remote.wordSets);
+        if (Array.isArray(remote.words)) setWords(remote.words);
+        if (Array.isArray(remote.practiceLogs)) setPracticeLogs(remote.practiceLogs);
+        if (Array.isArray(remote.quizBank)) setQuizBank(remote.quizBank);
+        if (remote.settings) setSettings({ ...INITIAL_USER_SETTINGS, ...remote.settings });
+      }
+      hasLoadedFirestoreRef.current = true;
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedFirestoreRef.current) return;
+    const timer = setTimeout(() => {
+      saveWorkspaceToFirestore({
+        wordSets,
+        words,
+        practiceLogs,
+        quizBank,
+        settings,
+        updatedAt: new Date().toISOString(),
+      });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [wordSets, words, practiceLogs, quizBank, settings]);
 
   const startQuiz = useCallback((config: ActiveQuizConfig) => {
     if (config.setId !== 'all') {
