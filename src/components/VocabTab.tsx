@@ -53,6 +53,7 @@ export function VocabTab() {
 
   // 單字集內頁的子頁籤 ('words' | 'quizzes')
   const [detailSubTab, setDetailSubTab] = useState<'words' | 'quizzes'>('words');
+  const [visibleWordCount, setVisibleWordCount] = useState(30);
   const [visibleQuizCount, setVisibleQuizCount] = useState(30);
 
   // 新增/編輯單字表單狀態
@@ -454,7 +455,7 @@ export function VocabTab() {
             </div>
           ) : (
             <div className="space-y-2.5">
-              {setWords.map((word) => {
+              {setWords.slice(0, visibleWordCount).map((word) => {
                 const priority = analyzeWordPriority(
                   word,
                   practiceLogs,
@@ -499,6 +500,14 @@ export function VocabTab() {
                   </div>
                 );
               })}
+              {setWords.length > visibleWordCount && (
+                <button
+                  onClick={() => setVisibleWordCount((c) => c + 30)}
+                  className="w-full py-3 rounded-2xl bg-[#161B18] hover:bg-white/5 border border-white/10 text-xs font-semibold text-[#7CE3B3] transition cursor-pointer"
+                >
+                  顯示更多單字（目前顯示 {visibleWordCount} / 共 {setWords.length} 個）
+                </button>
+              )}
             </div>
           )
         ) : (
