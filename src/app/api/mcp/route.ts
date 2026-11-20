@@ -127,6 +127,30 @@ export async function POST(req: NextRequest) {
                   required: ['items'],
                 },
               },
+              {
+                name: 'add_words',
+                description: '新增單字或片語到指定的 Vocu 單字集（若未指定 setId 則加入第一個單字集）',
+                inputSchema: {
+                  type: 'object',
+                  properties: {
+                    setId: { type: 'string', description: '選填：目標單字集 ID' },
+                    words: {
+                      type: 'array',
+                      description: '要新增的單字陣列，每筆包含 term, pos, definition',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          term: { type: 'string' },
+                          pos: { type: 'string' },
+                          definition: { type: 'string' },
+                        },
+                        required: ['term', 'definition'],
+                      },
+                    },
+                  },
+                  required: ['words'],
+                },
+              },
             ],
           },
         },
@@ -239,6 +263,54 @@ export async function POST(req: NextRequest) {
                 {
                   type: 'text',
                   text: `成功寫入 ${incoming.length} 題至 Vocu Firestore 題庫。`,
+                },
+              ],
+            },
+          },
+          { headers: CORS_HEADERS }
+        );
+      }
+
+      if (toolName === 'add_words') {
+        const targetSetId =
+          typeof args.setId === 'string' && args.setId.trim()
+            ? args.setId.trim()
+            : workspace.wordSets[0]?.id || 'set-core-academic';
+        const incomingWords = Array.isArray(args.words) ? args.words : [];
+        const created = incomingWords
+          .filter((w: { term?: string; definition?: string }) => w?.term && w?.definition)
+          .map(
+            (
+              w: { term: string; pos?: string; definition: string },
+              idx: number
+            ) => ({
+              id: `w-mcp-${Date.now()}-${idx}`,
+              setId: targetSetId,
+              term: String(w.term).trim(),
+              pos: String(w.pos || 'n.').trim(),
+              definition: String(w.definition).trim(),
+              wrongCount: 0,
+              consecutiveCorrect: 0,
+              lastSeenAt: null,
+            })
+          );
+
+        const updatedWords = [...created, ...workspace.words];
+        await saveWorkspaceToFirestore({
+          ...workspace,
+          words: updatedWords,
+          updatedAt: new Date().toISOString(),
+        });
+
+        return NextResponse.json(
+          {
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: `成功新增 ${created.length} 筆單字至單字集 (${targetSetId})。`,
                 },
               ],
             },

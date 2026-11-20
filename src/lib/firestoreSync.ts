@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
 import { WordSet, WordItem, PracticeLog, QuizItem, UserSettings } from '@/types/vocu';
 
@@ -24,6 +24,23 @@ export async function loadWorkspaceFromFirestore(): Promise<VocuWorkspaceDoc | n
     console.error('Firestore load error:', err);
     return null;
   }
+}
+
+export function subscribeWorkspaceFromFirestore(
+  onUpdate: (data: VocuWorkspaceDoc) => void
+): () => void {
+  const ref = doc(db, WORKSPACE_COLLECTION, DEFAULT_DOC_ID);
+  return onSnapshot(
+    ref,
+    (snap) => {
+      if (snap.exists()) {
+        onUpdate(snap.data() as VocuWorkspaceDoc);
+      }
+    },
+    (err) => {
+      console.error('Firestore snapshot error:', err);
+    }
+  );
 }
 
 export async function saveWorkspaceToFirestore(data: VocuWorkspaceDoc): Promise<boolean> {

@@ -18,7 +18,7 @@ import {
   INITIAL_USER_SETTINGS,
 } from '@/lib/seedData';
 import {
-  loadWorkspaceFromFirestore,
+  subscribeWorkspaceFromFirestore,
   saveWorkspaceToFirestore,
 } from '@/lib/firestoreSync';
 
@@ -163,24 +163,19 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_KEYS.RECENT_SET, recentSetId);
   }, [recentSetId, isHydrated]);
 
-  // Load from Cloud Firestore on mount & sync changes back to Firestore
+  // Subscribe to Cloud Firestore in real time so MCP Agent pushes appear immediately
   const hasLoadedFirestoreRef = React.useRef(false);
   useEffect(() => {
-    let active = true;
-    loadWorkspaceFromFirestore().then((remote) => {
-      if (!active) return;
-      if (remote) {
-        if (Array.isArray(remote.wordSets)) setWordSets(remote.wordSets);
-        if (Array.isArray(remote.words)) setWords(remote.words);
-        if (Array.isArray(remote.practiceLogs)) setPracticeLogs(remote.practiceLogs);
-        if (Array.isArray(remote.quizBank)) setQuizBank(remote.quizBank);
-        if (remote.settings) setSettings({ ...INITIAL_USER_SETTINGS, ...remote.settings });
-      }
+    const unsubscribe = subscribeWorkspaceFromFirestore((remote) => {
+      if (Array.isArray(remote.wordSets)) setWordSets(remote.wordSets);
+      if (Array.isArray(remote.words)) setWords(remote.words);
+      if (Array.isArray(remote.practiceLogs)) setPracticeLogs(remote.practiceLogs);
+      if (Array.isArray(remote.quizBank)) setQuizBank(remote.quizBank);
+      if (remote.settings) setSettings({ ...INITIAL_USER_SETTINGS, ...remote.settings });
       hasLoadedFirestoreRef.current = true;
     });
-    return () => {
-      active = false;
-    };
+    hasLoadedFirestoreRef.current = true;
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
