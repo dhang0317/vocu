@@ -4,6 +4,7 @@ import {
   saveWorkspaceToFirestore,
   saveMcpQuizzesToSubcollection,
   deleteMcpQuizzesFromSubcollection,
+  loadMcpQuizzesFromSubcollection,
 } from '@/lib/firestoreSync';
 import {
   INITIAL_WORD_SETS,
@@ -187,6 +188,17 @@ export async function POST(req: NextRequest) {
                     },
                   },
                   required: ['quizIds'],
+                },
+              },
+              {
+                name: 'get_quiz_items',
+                description: '讀取目前已上傳至 Vocu Firestore 題庫的題目列表（含 id、setId、type、targetTerm、questionHash）',
+                inputSchema: {
+                  type: 'object',
+                  properties: {
+                    setId: { type: 'string', description: '選填：指定單字集 ID' },
+                    limit: { type: 'number', description: '回傳筆數上限，預設 50' },
+                  },
                 },
               },
             ],
@@ -514,6 +526,48 @@ export async function POST(req: NextRequest) {
                       setId: newSet.id,
                       wordSet: newSet,
                     },
+                    null,
+                    2
+                  ),
+                },
+              ],
+            },
+          },
+          { headers: CORS_HEADERS }
+        );
+      }
+
+      if (toolName === 'get_quiz_items') {
+        const limit = typeof args.limit === 'number' ? args.limit : 50;
+        const subQuizzes = await loadMcpQuizzesFromSubcollection();
+        const mergedMap = new Map<string, QuizItem>();
+        [...workspace.quizBank, ...subQuizzes].forEach((q) => mergedMap.set(q.id, q));
+        let allQuizzes = Array.from(mergedMap.values());
+        if (args.setId) {
+          allQuizzes = allQuizzes.filter((q) => q.setId === args.setId);
+        }
+        const summary = allQuizzes.slice(0, limit).map((q) => ({
+          id: q.id,
+          setId: q.setId,
+          type: q.type,
+          questionHash: q.questionHash,
+          targetTerm: q.type === 'word_bank_cloze' ? q.title : q.targetTerm,
+          preview:
+            q.type === 'word_bank_cloze'
+              ? q.passage.slice(0, 80)
+              : (q.sentence || '').slice(0, 80),
+        }));
+
+        return NextResponse.json(
+          {
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(
+                    { total: allQuizzes.length, items: summary },
                     null,
                     2
                   ),
