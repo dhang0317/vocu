@@ -135,62 +135,6 @@ export function HomeTab() {
         </div>
       </header>
 
-      {/* 2. 今日進度卡片 */}
-      <section className="bg-[#161B18] border border-white/10 rounded-2xl p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-          <div>
-            <span className="text-xs font-medium text-zinc-400">今日練習進度</span>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
-                {todayCompletedCount}
-              </span>
-              <span className="text-2xl font-semibold text-zinc-500">/ {dailyGoal}</span>
-              <span className="text-xs text-zinc-400 ml-1">題已完成</span>
-            </div>
-          </div>
-
-          {/* 每日目標切換器 Segmented Control: 10 題 / 20 題 / 30 題 */}
-          <div className="self-start sm:self-center">
-            <div className="text-[11px] text-zinc-400 mb-1.5 sm:text-right">每日目標題數</div>
-            <div
-              role="group"
-              aria-label="每日目標切換器"
-              className="inline-flex p-1 rounded-xl bg-[#0D110F] border border-white/10"
-            >
-              {([10, 20, 30] as const).map((goal) => {
-                const active = dailyGoal === goal;
-                return (
-                  <button
-                    key={goal}
-                    id={`daily-goal-btn-${goal}`}
-                    onClick={() => updateSettings({ dailyGoal: goal })}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      active
-                        ? 'bg-[#7CE3B3] text-[#0D110F] shadow-sm'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    {goal} 題
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* 水平進度條 */}
-        <div className="w-full h-3 rounded-full bg-[#0D110F] overflow-hidden border border-white/5">
-          <div
-            className="h-full bg-[#7CE3B3] rounded-full transition-all duration-500"
-            style={{ width: `${Math.max(4, progressPercent)}%` }}
-          />
-        </div>
-        <div className="flex items-center justify-between text-xs text-zinc-400 mt-2.5">
-          <span>達成率 {progressPercent}%</span>
-          <span>累計總作答：{practiceLogs.length} 題記錄</span>
-        </div>
-      </section>
-
       {/* 3. 快速開始區 */}
       <section className="bg-[#161B18] border border-white/10 rounded-2xl p-6 space-y-6">
         <div className="flex items-center justify-between">
