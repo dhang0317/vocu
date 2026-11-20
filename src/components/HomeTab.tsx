@@ -12,6 +12,7 @@ import {
   Clock,
   ArrowRight,
   Plus,
+  ListChecks,
 } from 'lucide-react';
 import { useVocu } from '@/context/VocuContext';
 import { QuestionType } from '@/types/vocu';
@@ -337,7 +338,7 @@ export function HomeTab() {
           <label className="block text-xs font-semibold text-zinc-300 mb-2.5">
             選擇練習題型（全程作答完畢交卷後才統一公佈答案與解析）
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <button
               id="select-type-word-bank"
               type="button"
@@ -359,13 +360,13 @@ export function HomeTab() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-white">文意選填 (Word Bank Cloze)</span>
+                  <span className="text-sm font-bold text-white">文意選填</span>
                   {selectedQuestionType === 'word_bank_cloze' && (
                     <CheckCircle2 className="w-4 h-4 text-[#7CE3B3] shrink-0" />
                   )}
                 </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                  一篇英文短文內含 (1)～(10) 共 10 個挖空，搭配 (A)～(J) 10 個不重複單字選項膠囊互動填答。
+                  10 格短文搭配 (A)～(J) 選項膠囊互動填答。
                 </p>
               </div>
             </button>
@@ -391,16 +392,45 @@ export function HomeTab() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-white">
-                    文意字彙 (首尾字母提示填空)
-                  </span>
+                  <span className="text-sm font-bold text-white">文意字彙</span>
                   {selectedQuestionType === 'letter_hint_cloze' && (
                     <CheckCircle2 className="w-4 h-4 text-[#7CE3B3] shrink-0" />
                   )}
                 </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                  單句語境拼字填空，支援單字（如 <code className="text-[#7CE3B3]">m_____y</code>）與多字片語（如{' '}
-                  <code className="text-[#7CE3B3]">n_____e t___o b___e f___d</code>）。
+                  首尾字母提示拼字填空，支援單字與片語。
+                </p>
+              </div>
+            </button>
+
+            <button
+              id="select-type-multiple-choice"
+              type="button"
+              onClick={() => setSelectedQuestionType('multiple_choice_cloze')}
+              className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3.5 ${
+                selectedQuestionType === 'multiple_choice_cloze'
+                  ? 'bg-[#0D110F] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
+                  : 'bg-[#0D110F]/60 border-white/10 hover:border-white/25'
+              }`}
+            >
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                  selectedQuestionType === 'multiple_choice_cloze'
+                    ? 'bg-[#7CE3B3] text-[#0D110F]'
+                    : 'bg-white/5 text-zinc-400'
+                }`}
+              >
+                <ListChecks className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-white">單句克漏字</span>
+                  {selectedQuestionType === 'multiple_choice_cloze' && (
+                    <CheckCircle2 className="w-4 h-4 text-[#7CE3B3] shrink-0" />
+                  )}
+                </div>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                  單句語境搭配 A / B / C / D 四選一選項。
                 </p>
               </div>
             </button>
@@ -423,7 +453,12 @@ export function HomeTab() {
           >
             <Play className="w-5 h-5 fill-[#0D110F]" />
             <span>
-              開始練習（{selectedQuestionType === 'word_bank_cloze' ? '文意選填 10 題' : '文意字彙 5 題'}
+              開始練習（
+              {selectedQuestionType === 'word_bank_cloze'
+                ? '文意選填 10 題'
+                : selectedQuestionType === 'multiple_choice_cloze'
+                  ? '單句克漏字 5 題'
+                  : '文意字彙 5 題'}
               ）
             </span>
           </button>

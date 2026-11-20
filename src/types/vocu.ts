@@ -21,7 +21,7 @@ export interface WordItem {
   lastSeenAt: string | null; // ISO string or null if never tested
 }
 
-export type QuestionType = 'word_bank_cloze' | 'letter_hint_cloze';
+export type QuestionType = 'word_bank_cloze' | 'letter_hint_cloze' | 'multiple_choice_cloze';
 
 export interface PracticeLog {
   id: string;
@@ -81,7 +81,28 @@ export interface LetterHintClozeQuiz {
   source?: 'builtin' | 'dynamic' | 'mcp_agent';
 }
 
-export type QuizItem = WordBankClozeQuiz | LetterHintClozeQuiz;
+export interface MultipleChoiceOption {
+  label: 'A' | 'B' | 'C' | 'D';
+  term: string;
+}
+
+export interface MultipleChoiceClozeQuiz {
+  id: string;
+  setId: string;
+  type: 'multiple_choice_cloze';
+  wordId: string;
+  sentence: string; // Uses {{BLANK}} as placeholder
+  options: MultipleChoiceOption[]; // 4 options A-D
+  correctLabel: 'A' | 'B' | 'C' | 'D';
+  targetTerm: string;
+  explanation: string;
+  questionHash: string;
+  priorityReason?: 'weakness' | 'new' | 'review' | 'cooldown_override';
+  createdAt: string;
+  source?: 'builtin' | 'dynamic' | 'mcp_agent';
+}
+
+export type QuizItem = WordBankClozeQuiz | LetterHintClozeQuiz | MultipleChoiceClozeQuiz;
 
 export type WordWeightStatus = 'weakness' | 'untested' | 'cooldown' | 'due_review';
 

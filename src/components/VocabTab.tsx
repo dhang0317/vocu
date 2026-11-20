@@ -599,7 +599,9 @@ export function VocabTab() {
                       )}
                     </p>
                     <p className="text-xs text-zinc-400">
-                      提示釋義：{quiz.chineseHint}（詞性：{quiz.pos}）
+                      {quiz.type === 'letter_hint_cloze'
+                        ? `提示釋義：${quiz.chineseHint}（詞性：${quiz.pos}）`
+                        : `正確答案：${quiz.correctLabel}. ${quiz.targetTerm}`}
                     </p>
                   </div>
                 );

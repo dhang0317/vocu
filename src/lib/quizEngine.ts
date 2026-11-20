@@ -4,6 +4,8 @@ import {
   QuizItem,
   LetterHintClozeQuiz,
   WordBankClozeQuiz,
+  MultipleChoiceClozeQuiz,
+  MultipleChoiceOption,
   WordWeightStatus,
   UserSettings,
 } from '@/types/vocu';
@@ -496,6 +498,151 @@ export function buildWordBankQuizSession(params: {
       reviewCount: 0,
       skippedCooldownCount,
       isFreshPassage: false,
+    },
+  };
+}
+
+/**
+ * 組出「單句克漏字 (四選一 Multiple Choice Cloze)」測驗場次
+ * 優先從題庫挑選未作答的 multiple_choice_cloze 題目；若無，則動態生成單句語境並搭配同單字集（或全域）干擾項組成 A/B/C/D 四選一。
+ */
+export function buildMultipleChoiceQuizSession(params: {
+  setId: string;
+  words: WordItem[];
+  logs: PracticeLog[];
+  quizBank: QuizItem[];
+  settings: UserSettings;
+  questionCount?: number;
+  onlyWrongWords?: boolean;
+}): {
+  questions: MultipleChoiceClozeQuiz[];
+  selectionSummary: {
+    weaknessCount: number;
+    newCount: number;
+    reviewCount: number;
+    skippedCooldownCount: number;
+    excludedDuplicateHashes: number;
+  };
+} {
+  const { setId, words, logs, quizBank, settings, questionCount = 5, onlyWrongWords = false } = params;
+  const setWords = setId === 'all' ? words : words.filter((w) => w.setId === setId);
+  const answeredHashes = new Set(logs.map((l) => l.questionHash));
+
+  const allAnalyzed = setWords.map((w) => analyzeWordPriority(w, logs, settings.cooldownThreshold));
+  const skippedCooldownCount = allAnalyzed.filter((a) => a.status === 'cooldown').length;
+
+  const ranked = rankWordsForQuiz(setWords, logs, settings, {
+    onlyWrongWords,
+    includeCooldownIfInsufficient: true,
+    targetCount: Math.min(questionCount, setWords.length),
+  });
+
+  const existingMcQuizzes = quizBank.filter(
+    (q): q is MultipleChoiceClozeQuiz => q.type === 'multiple_choice_cloze'
+  );
+
+  const usedWordIds = new Set<string>();
+  const selectedQuestions: MultipleChoiceClozeQuiz[] = [];
+  let excludedDuplicateHashes = 0;
+  let weaknessCount = 0;
+  let newCount = 0;
+  let reviewCount = 0;
+
+  const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
+
+  for (let idx = 0; idx < ranked.length; idx++) {
+    const item = ranked[idx];
+    if (selectedQuestions.length >= questionCount) break;
+    if (usedWordIds.has(item.word.id)) continue;
+    usedWordIds.add(item.word.id);
+
+    const priorityReason: MultipleChoiceClozeQuiz['priorityReason'] =
+      item.status === 'weakness'
+        ? 'weakness'
+        : item.status === 'untested'
+          ? 'new'
+          : item.status === 'cooldown'
+            ? 'cooldown_override'
+            : 'review';
+
+    if (priorityReason === 'weakness') weaknessCount++;
+    else if (priorityReason === 'new') newCount++;
+    else reviewCount++;
+
+    let chosen: MultipleChoiceClozeQuiz | null = null;
+    for (const candidate of existingMcQuizzes.filter((q) => q.wordId === item.word.id)) {
+      if (answeredHashes.has(candidate.questionHash)) {
+        excludedDuplicateHashes++;
+      } else {
+        chosen = { ...candidate, priorityReason };
+        break;
+      }
+    }
+
+    if (!chosen) {
+      // 使用動態單句語境模板生成題幹
+      const baseLh = synthesizeFreshLetterHintQuestion(
+        item.word,
+        answeredHashes,
+        priorityReason,
+        logs.length + idx
+      );
+
+      // 挑選 3 個干擾項（優先從同單字集挑選，不足再從全域挑選）
+      const distractorPool = [
+        ...setWords.filter((w) => w.id !== item.word.id),
+        ...words.filter((w) => w.id !== item.word.id && w.setId !== item.word.setId),
+      ];
+      const distractors: WordItem[] = [];
+      for (const d of distractorPool) {
+        if (distractors.length >= 3) break;
+        if (!distractors.some((x) => x.term.toLowerCase() === d.term.toLowerCase())) {
+          distractors.push(d);
+        }
+      }
+
+      const rawTerms = [item.word.term, ...distractors.map((d) => d.term)];
+      while (rawTerms.length < 4) {
+        rawTerms.push(['came across', 'brought about', 'put off', 'turn down'][rawTerms.length % 4]);
+      }
+
+      // 確定性洗牌，讓正確答案分佈在 A/B/C/D
+      const shift = (idx + logs.length) % 4;
+      const rotated = rawTerms.map((_, i) => rawTerms[(i + shift) % 4]);
+      const options: MultipleChoiceOption[] = labels.map((label, i) => ({
+        label,
+        term: rotated[i],
+      }));
+      const correctOption = options.find((o) => o.term === item.word.term) || options[0];
+
+      chosen = {
+        id: `quiz-dyn-mc-${item.word.id}-${baseLh.questionHash}`,
+        setId: item.word.setId,
+        type: 'multiple_choice_cloze',
+        wordId: item.word.id,
+        sentence: baseLh.sentence,
+        options,
+        correctLabel: correctOption.label,
+        targetTerm: item.word.term,
+        explanation: baseLh.explanation,
+        questionHash: baseLh.questionHash,
+        priorityReason,
+        createdAt: new Date().toISOString(),
+        source: 'dynamic',
+      };
+    }
+
+    selectedQuestions.push(chosen);
+  }
+
+  return {
+    questions: selectedQuestions,
+    selectionSummary: {
+      weaknessCount,
+      newCount,
+      reviewCount,
+      skippedCooldownCount,
+      excludedDuplicateHashes,
     },
   };
 }
