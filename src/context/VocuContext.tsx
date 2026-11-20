@@ -186,6 +186,12 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
       if (Array.isArray(remote.words)) setWords(remote.words);
       if (Array.isArray(remote.practiceLogs)) setPracticeLogs(remote.practiceLogs);
       if (Array.isArray(remote.quizBank)) {
+        const remoteWords = Array.isArray(remote.words) ? remote.words : [];
+        const wordById = new Map(remoteWords.map((w) => [w.id, w]));
+        const wordByTerm = new Map(
+          remoteWords.map((w) => [String(w.term || '').trim().toLowerCase(), w])
+        );
+
         const normalizedQuizzes = remote.quizBank.map((q) => {
           const raw = q as unknown as Record<string, unknown>;
           const t = String(raw.type || '').toLowerCase();
@@ -194,14 +200,29 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
             raw.sentence || raw.question || raw.prompt || raw.text || ''
           );
           if (sentence && !sentence.includes('{{BLANK}}') && /_{3,}/.test(sentence)) {
-            sentence = sentence.replace(/_{3,}/, '{{BLANK}}');
+            sentence = sentence.replace(
+              /[a-zA-Z]*_{3,}[a-zA-Z]*(?:\s+[a-zA-Z]*_{3,}[a-zA-Z]*)*/,
+              '{{BLANK}}'
+            );
           }
           const targetTerm = String(
             raw.targetTerm || raw.answer || raw.word || raw.term || ''
           );
-          const chineseHint = String(
-            raw.chineseHint || raw.hint || raw.definition || raw.translation || ''
-          );
+          const matchedWord =
+            (raw.wordId ? wordById.get(String(raw.wordId)) : undefined) ||
+            (targetTerm ? wordByTerm.get(targetTerm.trim().toLowerCase()) : undefined);
+
+          const rawPos = String(raw.pos || matchedWord?.pos || '').trim();
+          let chineseHint = String(
+            raw.chineseHint || raw.meaning || raw.definition || raw.hint || raw.translation || ''
+          ).trim();
+          // 若 chineseHint 為空或誤填為詞性（如 "n."），自動從單字庫補回正確中文釋義
+          if (
+            (!chineseHint || chineseHint === rawPos || /^[a-z./]+\.?$/i.test(chineseHint)) &&
+            matchedWord?.definition
+          ) {
+            chineseHint = matchedWord.definition;
+          }
 
           if (t === 'word_bank_cloze' || (raw.passage && Array.isArray(raw.answers))) {
             return { ...raw, type: 'word_bank_cloze' as const };
@@ -248,7 +269,7 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
             sentence,
             targetTerm,
             baseTerm: String(raw.baseTerm || targetTerm),
-            pos: String(raw.pos || ''),
+            pos: rawPos,
             chineseHint,
           };
         });
