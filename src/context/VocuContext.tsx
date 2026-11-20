@@ -261,14 +261,41 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
               correctLabel = matched ? matched.label : 'A';
             }
 
+            // 依 questionHash 確定性洗牌 4 個選項，避免正確答案永遠集中在 A
+            const terms = normalizedOptions.map((o) => o.term);
+            const seed = questionHash
+              .split('')
+              .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+            const shuffledTerms = [...terms];
+            for (let i = shuffledTerms.length - 1; i > 0; i--) {
+              const j = (seed + i * 7) % (i + 1);
+              [shuffledTerms[i], shuffledTerms[j]] = [shuffledTerms[j], shuffledTerms[i]];
+            }
+            const shuffledOptions = labels.map((label, idx) => ({
+              label,
+              term: shuffledTerms[idx] || '',
+            }));
+
+            const targetLower = (
+              targetTerm ||
+              normalizedOptions.find((o) => o.label === correctLabel)?.term ||
+              ''
+            )
+              .trim()
+              .toLowerCase();
+            const matchedAfterShuffle = shuffledOptions.find(
+              (o) => o.term.trim().toLowerCase() === targetLower
+            );
+            const finalCorrectLabel = matchedAfterShuffle ? matchedAfterShuffle.label : 'A';
+
             return {
               ...raw,
               type: 'multiple_choice_cloze' as const,
               wordId: resolvedWordId,
               sentence,
               targetTerm,
-              options: normalizedOptions,
-              correctLabel,
+              options: shuffledOptions,
+              correctLabel: finalCorrectLabel,
               questionHash,
             };
           }

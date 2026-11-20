@@ -598,17 +598,21 @@ export function QuizModal() {
   // ==========================================================
   if (sessionData.type === 'multiple_choice_cloze') {
     const { questions, selectionSummary } = sessionData;
-    const answeredMcCount = questions.filter((q) => Boolean(mcSelections[q.id])).length;
-    const correctMcCount = questions.filter((q) => mcSelections[q.id] === q.correctLabel).length;
+    const answeredMcCount = questions.filter((_, idx) => Boolean(mcSelections[String(idx)])).length;
+    const correctMcCount = questions.filter(
+      (q, idx) => mcSelections[String(idx)] === q.correctLabel
+    ).length;
     const wrongMcCount = answeredMcCount - correctMcCount;
     const allMcAnswered = questions.length > 0 && answeredMcCount === questions.length;
 
     const handleSelectMcOption = (
+      idx: number,
       q: (typeof questions)[number],
       label: 'A' | 'B' | 'C' | 'D'
     ) => {
-      if (mcSelections[q.id]) return; // 已作答鎖定
-      setMcSelections((prev) => ({ ...prev, [q.id]: label }));
+      const key = String(idx);
+      if (mcSelections[key]) return; // 已作答鎖定
+      setMcSelections((prev) => ({ ...prev, [key]: label }));
 
       const chosenOpt = q.options.find((o) => o.label === label);
       const isCorrect = label === q.correctLabel;
@@ -688,7 +692,7 @@ export function QuizModal() {
           {(() => {
             const q = questions[mcCurrentIndex];
             if (!q) return null;
-            const chosenLabel = mcSelections[q.id];
+            const chosenLabel = mcSelections[String(mcCurrentIndex)];
             const isAnswered = Boolean(chosenLabel);
             const isCorrect = isAnswered && chosenLabel === q.correctLabel;
             const parts = (q.sentence || '').split('{{BLANK}}');
@@ -753,7 +757,7 @@ export function QuizModal() {
                           key={opt.label}
                           type="button"
                           disabled={isAnswered}
-                          onClick={() => handleSelectMcOption(q, opt.label)}
+                          onClick={() => handleSelectMcOption(mcCurrentIndex, q, opt.label)}
                           className={`w-full text-left px-4 py-3.5 rounded-xl border text-sm transition flex items-center gap-3 ${
                             isAnswered ? 'cursor-default' : 'cursor-pointer'
                           } ${optStyle}`}
