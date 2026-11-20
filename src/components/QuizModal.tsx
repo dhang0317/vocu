@@ -789,7 +789,14 @@ export function QuizModal() {
                 {isAnswered && !isLastQuestion && (
                   <button
                     type="button"
-                    onClick={() => setMcCurrentIndex((i) => i + 1)}
+                    onClick={() => {
+                      const nextUnansweredIdx = questions.findIndex(
+                        (item, idx) => idx > mcCurrentIndex && !mcSelections[item.id]
+                      );
+                      setMcCurrentIndex(
+                        nextUnansweredIdx !== -1 ? nextUnansweredIdx : mcCurrentIndex + 1
+                      );
+                    }}
                     className="w-full py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-sm transition cursor-pointer"
                   >
                     下一題（{mcCurrentIndex + 2} / {questions.length}）→
