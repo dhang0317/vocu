@@ -986,6 +986,10 @@ export function QuizModal() {
                   <input
                     id={`letter-hint-input-${idx + 1}`}
                     type="text"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
                     disabled={isSubmitted}
                     value={userVal}
                     onChange={(e) =>
