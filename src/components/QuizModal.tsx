@@ -662,23 +662,6 @@ export function QuizModal() {
             </div>
           </div>
 
-          <div className="bg-[#161B18] border border-white/10 rounded-2xl px-5 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-2 text-zinc-300">
-              <Sparkles className="w-4 h-4 text-[#7CE3B3] shrink-0" />
-              <span>
-                本場次依序抽取：
-                <strong className="text-[#F472B6] ml-1">
-                  弱點補強 {selectionSummary.weaknessCount} 題
-                </strong>{' '}
-                → <strong className="text-[#7CE3B3]">新字 {selectionSummary.newCount} 題</strong> →{' '}
-                <strong className="text-[#FBBF24]">複習 {selectionSummary.reviewCount} 題</strong>
-              </span>
-            </div>
-            <span className="text-zinc-400">
-              已跳過 {selectionSummary.skippedCooldownCount} 個冷卻字詞
-            </span>
-          </div>
-
           {/* 進度條 */}
           <div className="w-full h-2 rounded-full bg-[#161B18] overflow-hidden border border-white/10">
             <div
