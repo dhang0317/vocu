@@ -818,6 +818,51 @@ export function QuizModal() {
   // 題型二：文意字彙 (首尾字母提示拼字填空) 互動與交卷邏輯
   // ==========================================================
   const { questions, selectionSummary } = sessionData;
+
+  if (questions.length === 0) {
+    const setQuizzes = quizBank.filter(
+      (q) => activeQuiz.setId === 'all' || q.setId === activeQuiz.setId
+    );
+    const mcCount = setQuizzes.filter((q) => q.type === 'multiple_choice_cloze').length;
+    const wbCount = setQuizzes.filter((q) => q.type === 'word_bank_cloze').length;
+    const lhCount = setQuizzes.filter((q) => q.type === 'letter_hint_cloze').length;
+
+    return (
+      <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[#161B18] border border-white/10 rounded-2xl p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#FBBF24]/15 text-[#FBBF24] flex items-center justify-center mx-auto">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <h3 className="text-lg font-bold text-white">此題型目前沒有可抽題目</h3>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            此單字集目前共有 {setQuizzes.length} 題（文意字彙 {lhCount} 題、單句克漏字 {mcCount} 題、文意選填 {wbCount} 題）。
+          </p>
+          <div className="flex flex-col gap-2 pt-2">
+            {mcCount > 0 && (
+              <button
+                onClick={() => {
+                  closeQuiz();
+                  setTimeout(() => {
+                    setActiveTab('home');
+                  }, 50);
+                }}
+                className="w-full px-4 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+              >
+                返回首頁切換為「單句克漏字 ({mcCount} 題)」
+              </button>
+            )}
+            <button
+              onClick={closeQuiz}
+              className="w-full px-4 py-2.5 rounded-xl bg-[#0D110F] border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer"
+            >
+              關閉
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const answeredCount = questions.filter((q) =>
     Boolean(letterHintInputs[q.id]?.trim())
   ).length;
