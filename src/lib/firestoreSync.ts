@@ -49,7 +49,10 @@ export async function saveWorkspaceToFirestore(
   try {
     const ref = doc(db, WORKSPACE_COLLECTION, DEFAULT_DOC_ID);
     const cleanData = JSON.parse(JSON.stringify(data));
-    await setDoc(ref, cleanData, { merge: true });
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Firestore write timeout (10s)')), 10000)
+    );
+    await Promise.race([setDoc(ref, cleanData, { merge: true }), timeoutPromise]);
     return { ok: true };
   } catch (err) {
     console.error('Firestore save error:', err);
