@@ -203,7 +203,6 @@ export function buildLetterHintQuizSession(params: {
   const ranked = rankWordsForQuiz(setWords, logs, settings, {
     onlyWrongWords,
     includeCooldownIfInsufficient: true,
-    targetCount: Math.min(questionCount, setWords.length),
   });
 
   const usedWordIdsInSession = new Set<string>();
@@ -407,7 +406,6 @@ export function buildMultipleChoiceQuizSession(params: {
   const ranked = rankWordsForQuiz(setWords, logs, settings, {
     onlyWrongWords,
     includeCooldownIfInsufficient: true,
-    targetCount: Math.min(questionCount, setWords.length),
   });
 
   const existingMcQuizzes = quizBank.filter(
