@@ -13,7 +13,6 @@ const NAV_ITEMS: Array<{
 }> = [
   { id: 'home', label: '今天', sublabel: 'Home', icon: Calendar },
   { id: 'history', label: '記錄', sublabel: 'History', icon: History },
-  { id: 'profile', label: '我', sublabel: 'Profile', icon: User },
 ];
 
 export function Sidebar() {

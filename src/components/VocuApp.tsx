@@ -22,7 +22,6 @@ function VocuShell() {
         <div className="max-w-[850px] mx-auto px-4 sm:px-8 pt-7 pb-16">
           {activeTab === 'home' && <HomeTab />}
           {activeTab === 'history' && <HistoryTab />}
-          {activeTab === 'profile' && <ProfileTab />}
         </div>
       </main>
 
