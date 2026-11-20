@@ -931,7 +931,10 @@ export function QuizModal() {
               isSubmitted &&
               checkLetterHintAnswer(userVal, q.targetTerm || '', q.baseTerm);
 
-            const parts = (q.sentence || '').split('{{BLANK}}');
+            const cleanSentence = (q.sentence || '')
+              .replace(/[a-zA-Z]*\{\{BLANK\}\}[a-zA-Z]*/g, '{{BLANK}}')
+              .replace(/[a-zA-Z]*_{3,}[a-zA-Z]*/g, '{{BLANK}}');
+            const parts = cleanSentence.split('{{BLANK}}');
             const updatedWord = words.find((w) => w.id === q.wordId);
             const updatedPriority = updatedWord
               ? analyzeWordPriority(
