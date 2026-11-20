@@ -283,7 +283,7 @@ export async function POST(req: NextRequest) {
                     message: `Pre-save validation failed: 文意選填短文必須嚴格包含 10 個空格佔位符 (1) ______ ～ (10) ______，目前偵測到 ${blankMatches.length} 個。`,
                   },
                 },
-                { status: 400, headers: CORS_HEADERS }
+                { headers: CORS_HEADERS }
               );
             }
             if (!Array.isArray(item.options) || item.options.length !== 10 || !Array.isArray(item.answers) || item.answers.length !== 10) {
@@ -296,7 +296,7 @@ export async function POST(req: NextRequest) {
                     message: 'Pre-save validation failed: options 與 answers 陣列長度必須皆為 10。',
                   },
                 },
-                { status: 400, headers: CORS_HEADERS }
+                { headers: CORS_HEADERS }
               );
             }
             const uniqueTerms = new Set(item.options.map((o) => o.term?.toLowerCase().trim()));
@@ -310,7 +310,7 @@ export async function POST(req: NextRequest) {
                     message: 'Pre-save validation failed: 10 個選項單字不可重複。',
                   },
                 },
-                { status: 400, headers: CORS_HEADERS }
+                { headers: CORS_HEADERS }
               );
             }
           }
@@ -383,7 +383,7 @@ export async function POST(req: NextRequest) {
               id,
               error: { code: -32603, message: `Firestore 寫入失敗: ${saveRes.error}` },
             },
-            { status: 500, headers: CORS_HEADERS }
+            { headers: CORS_HEADERS }
           );
         }
 
