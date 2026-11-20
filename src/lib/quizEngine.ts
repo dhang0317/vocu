@@ -357,17 +357,37 @@ export function buildWordBankQuizSession(params: {
       return { quiz: p, score, wCount, nCount, rCount };
     });
 
-    scoredPassages.sort((a, b) => b.score - a.score);
-    const best = scoredPassages[0];
+    // 從未作答的短文中隨機挑選一篇（增加隨機性與新鮮感）
+    const best =
+      scoredPassages[Math.floor(Math.random() * scoredPassages.length)] || scoredPassages[0];
 
-    // 確保每個選項物件都綁定 correctBlankIndex
+    // 隨機洗牌 (A)~(J) 10 個選項，並同步更新 answers 的 optionLetter 與綁定 correctBlankIndex
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
     const answerByWordId = new Map(best.quiz.answers.map((a) => [a.wordId, a.blankNumber]));
+    const shuffledRawOptions = [...best.quiz.options].sort(() => Math.random() - 0.5);
+    const shuffledOptions = shuffledRawOptions.map((opt, idx) => ({
+      ...opt,
+      letter: letters[idx],
+      correctBlankIndex: opt.correctBlankIndex ?? answerByWordId.get(opt.wordId),
+    }));
+
+    const newLetterByWordId = new Map(shuffledOptions.map((o) => [o.wordId, o.letter]));
+    const newLetterByTerm = new Map(
+      shuffledOptions.map((o) => [o.term.trim().toLowerCase(), o.letter])
+    );
+
+    const updatedAnswers = best.quiz.answers.map((ans) => ({
+      ...ans,
+      optionLetter:
+        newLetterByWordId.get(ans.wordId) ||
+        newLetterByTerm.get(ans.term.trim().toLowerCase()) ||
+        ans.optionLetter,
+    }));
+
     const boundQuiz: WordBankClozeQuiz = {
       ...best.quiz,
-      options: best.quiz.options.map((opt) => ({
-        ...opt,
-        correctBlankIndex: opt.correctBlankIndex ?? answerByWordId.get(opt.wordId),
-      })),
+      options: shuffledOptions,
+      answers: updatedAnswers,
     };
 
     return {
