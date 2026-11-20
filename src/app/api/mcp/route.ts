@@ -314,14 +314,54 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        const setById = new Map(workspace.wordSets.map((s) => [s.id, s]));
+        const setByTitle = new Map(
+          workspace.wordSets.map((s) => [s.title.trim().toLowerCase(), s])
+        );
+        const wordById = new Map(workspace.words.map((w) => [w.id, w]));
+        const wordByTerm = new Map(
+          workspace.words.map((w) => [w.term.trim().toLowerCase(), w])
+        );
+
         const normalizedIncoming = incoming.map((item, idx) => {
           const fallbackText =
             item.type === 'word_bank_cloze' ? item.passage : item.sentence;
+
+          // Resolve setId (accepts exact id or set title, falls back to first set)
+          let resolvedSetId = item.setId;
+          if (!resolvedSetId || !setById.has(resolvedSetId)) {
+            const byTitle = resolvedSetId
+              ? setByTitle.get(resolvedSetId.trim().toLowerCase())
+              : undefined;
+            resolvedSetId = byTitle?.id || workspace.wordSets[0]?.id || 'set-core-academic';
+          }
+
+          // Resolve wordId for single-word quizzes
+          let extraWordPatch: Record<string, string> = {};
+          if (item.type !== 'word_bank_cloze') {
+            let resolvedWordId = item.wordId;
+            if (!resolvedWordId || !wordById.has(resolvedWordId)) {
+              const matchedWord = item.targetTerm
+                ? wordByTerm.get(item.targetTerm.trim().toLowerCase())
+                : undefined;
+              if (matchedWord) {
+                resolvedWordId = matchedWord.id;
+                if (!item.setId) resolvedSetId = matchedWord.setId;
+              }
+            }
+            if (resolvedWordId) {
+              extraWordPatch = { wordId: resolvedWordId };
+            }
+          }
+
           return {
             ...item,
+            ...extraWordPatch,
+            setId: resolvedSetId,
             id: item.id || `quiz-mcp-${Date.now()}-${idx}`,
             questionHash:
-              item.questionHash || computeQuestionHash(String(fallbackText || `${Date.now()}-${idx}`)),
+              item.questionHash ||
+              computeQuestionHash(String(fallbackText || `${Date.now()}-${idx}`)),
             createdAt: item.createdAt || new Date().toISOString(),
             source: item.source || ('mcp_agent' as const),
           };
