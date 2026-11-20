@@ -314,12 +314,36 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        const updatedBank = [...incoming, ...workspace.quizBank];
-        await saveWorkspaceToFirestore({
+        const normalizedIncoming = incoming.map((item, idx) => {
+          const fallbackText =
+            item.type === 'word_bank_cloze' ? item.passage : item.sentence;
+          return {
+            ...item,
+            id: item.id || `quiz-mcp-${Date.now()}-${idx}`,
+            questionHash:
+              item.questionHash || computeQuestionHash(String(fallbackText || `${Date.now()}-${idx}`)),
+            createdAt: item.createdAt || new Date().toISOString(),
+            source: item.source || ('mcp_agent' as const),
+          };
+        });
+
+        const updatedBank = [...normalizedIncoming, ...workspace.quizBank];
+        const saveRes = await saveWorkspaceToFirestore({
           ...workspace,
           quizBank: updatedBank,
           updatedAt: new Date().toISOString(),
         });
+
+        if (!saveRes.ok) {
+          return NextResponse.json(
+            {
+              jsonrpc: '2.0',
+              id,
+              error: { code: -32603, message: `Firestore 寫入失敗: ${saveRes.error}` },
+            },
+            { status: 500, headers: CORS_HEADERS }
+          );
+        }
 
         return NextResponse.json(
           {
@@ -329,7 +353,7 @@ export async function POST(req: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: `成功寫入 ${incoming.length} 題至 Vocu Firestore 題庫。`,
+                  text: `成功寫入 ${normalizedIncoming.length} 題至 Vocu Firestore 題庫。`,
                 },
               ],
             },
