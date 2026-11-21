@@ -86,3 +86,38 @@ export function checkLetterHintAnswer(userAnswer: string, targetTerm: string, ba
   if (baseTerm && userNorm === normalize(baseTerm)) return true;
   return false;
 }
+
+function levenshteinDistance(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+    }
+  }
+  return dp[m][n];
+}
+
+/**
+ * 近似拼字判定（Near-Miss Spelling）：
+ * 當字數 >= 6 時容許最多 2 個字元差異（字數 4~5 時容許 1 個字元差異），顯示「差一點就對了」提示。
+ */
+export function isNearMissSpelling(userAnswer: string, targetTerm: string, baseTerm?: string): boolean {
+  const normalize = (s: string) =>
+    s.trim().toLowerCase().replace(/[.,!?;:'"]/g, '').replace(/\s+/g, ' ');
+  const u = normalize(userAnswer);
+  const t = normalize(targetTerm);
+  if (!u || !t || u === t) return false;
+  const maxDist = t.length >= 6 ? 2 : t.length >= 4 ? 1 : 0;
+  if (maxDist === 0) return false;
+  if (levenshteinDistance(u, t) <= maxDist) return true;
+  if (baseTerm) {
+    const b = normalize(baseTerm);
+    if (b && levenshteinDistance(u, b) <= maxDist) return true;
+  }
+  return false;
+}

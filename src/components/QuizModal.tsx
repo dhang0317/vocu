@@ -19,7 +19,7 @@ import {
   buildMultipleChoiceQuizSession,
   analyzeWordPriority,
 } from '@/lib/quizEngine';
-import { generateLetterHintMask, checkLetterHintAnswer } from '@/lib/masking';
+import { generateLetterHintMask, checkLetterHintAnswer, isNearMissSpelling } from '@/lib/masking';
 import { WeightStatusBadge } from './SetIcon';
 
 export function QuizModal() {
@@ -1081,6 +1081,10 @@ export function QuizModal() {
                       {isCorrect ? (
                         <span className="text-[#7CE3B3]">
                           ✓ 拼字正確！正確拼字：{q.targetTerm}
+                        </span>
+                      ) : isNearMissSpelling(userVal, q.targetTerm || '', q.baseTerm) ? (
+                        <span className="text-[#FBBF24]">
+                          ≈ 差一點就對了！正確拼字：{q.targetTerm}
                         </span>
                       ) : (
                         <span className="text-[#F472B6]">
