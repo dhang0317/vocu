@@ -16,11 +16,12 @@ const NAV_ITEMS: Array<{
 ];
 
 export function Sidebar() {
-  const { activeTab, setActiveTab, words, practiceLogs, settings } = useVocu();
+  const { activeTab, setActiveTab, words, settings } = useVocu();
 
-  const weaknessCount = words.filter(
-    (w) => analyzeWordPriority(w, practiceLogs, settings.cooldownThreshold).status === 'weakness'
-  ).length;
+  const weaknessCount = React.useMemo(
+    () => words.filter((w) => w.wrongCount > 0 && w.consecutiveCorrect < 2).length,
+    [words]
+  );
 
   return (
     <>

@@ -31,20 +31,12 @@ export function analyzeWordPriority(
   logs: PracticeLog[],
   cooldownThreshold: number = 15
 ): WordPriorityAnalysis {
-  const wordLogs = logs
-    .filter((l) => l.wordId === word.id)
-    .sort((a, b) => new Date(b.answeredAt).getTime() - new Date(a.answeredAt).getTime());
+  // Fast O(1) lookup: logs are prepended newest-first in VocuContext
+  const latestWordLog = logs.find((l) => l.wordId === word.id);
+  const recentIndex = latestWordLog ? logs.indexOf(latestWordLog) : -1;
+  const isInRecentGlobal = recentIndex >= 0 && recentIndex < cooldownThreshold;
 
-  // 取全部記錄中最新的 N 筆 (cooldownThreshold) 判斷是否處於近期冷卻範圍
-  const recentGlobalLogIds = new Set(
-    [...logs]
-      .sort((a, b) => new Date(b.answeredAt).getTime() - new Date(a.answeredAt).getTime())
-      .slice(0, cooldownThreshold)
-      .map((l) => l.id)
-  );
-
-  const latestWordLog = wordLogs[0];
-  const hasEverBeenTested = wordLogs.length > 0 || word.lastSeenAt !== null;
+  const hasEverBeenTested = Boolean(latestWordLog) || word.lastSeenAt !== null;
 
   // 優先級 1：弱點補強 — 最近答錯或歷史有錯且尚未連續答對 2 次
   const hasUnresolvedWrong =
@@ -74,7 +66,7 @@ export function analyzeWordPriority(
 
   // 檢查是否處於「冷卻中」：最近剛答對 + 連續答對 >= 2 次 + 在最近 cooldownThreshold 題內或 3 小時內
   const isRecentlyAnswered =
-    (latestWordLog && recentGlobalLogIds.has(latestWordLog.id)) ||
+    isInRecentGlobal ||
     (word.lastSeenAt && Date.now() - new Date(word.lastSeenAt).getTime() < 1000 * 60 * 60 * 3);
 
   if (word.consecutiveCorrect >= 2 && isRecentlyAnswered) {
