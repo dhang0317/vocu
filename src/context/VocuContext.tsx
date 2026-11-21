@@ -135,7 +135,7 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
   const [activeQuiz, setActiveQuiz] = useState<ActiveQuizConfig | null>(null);
   const isHydrated = true;
 
-  // Persist to LocalStorage on changes (debounced 1000ms so button taps never block iPad Safari main thread)
+  // Persist lightweight state to LocalStorage (debounced 1500ms; quizBank is loaded from Firestore subcollection)
   useEffect(() => {
     if (!isHydrated) return;
     const t = setTimeout(() => {
@@ -143,13 +143,12 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem(STORAGE_KEYS.SETS, JSON.stringify(wordSets));
         localStorage.setItem(STORAGE_KEYS.WORDS, JSON.stringify(words));
         localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(practiceLogs));
-        localStorage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(quizBank));
         localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
         localStorage.setItem(STORAGE_KEYS.RECENT_SET, recentSetId);
       } catch {}
-    }, 1000);
+    }, 1500);
     return () => clearTimeout(t);
-  }, [wordSets, words, practiceLogs, quizBank, settings, recentSetId, isHydrated]);
+  }, [wordSets, words, practiceLogs, settings, recentSetId, isHydrated]);
 
   // Subscribe to Cloud Firestore in real time so MCP Agent pushes appear immediately
   const isRemoteUpdateRef = React.useRef(false);
@@ -358,13 +357,13 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
         wordSets,
         words,
         practiceLogs,
-        quizBank,
+        quizBank: [],
         settings,
         updatedAt: new Date().toISOString(),
       });
-    }, 600);
+    }, 1000);
     return () => clearTimeout(timer);
-  }, [wordSets, words, practiceLogs, quizBank, settings]);
+  }, [wordSets, words, practiceLogs, settings]);
 
   const startQuiz = useCallback((config: ActiveQuizConfig) => {
     if (config.setId !== 'all') {
