@@ -22,7 +22,7 @@ import { WordWeightStatus } from '@/types/vocu';
 export function HistoryTab() {
   const { wordSets, words, practiceLogs, settings, startQuiz } = useVocu();
 
-  const [viewMode, setViewMode] = useState<'timeline' | 'word_weights'>('timeline');
+  const [viewMode, setViewMode] = useState<'timeline' | 'word_weights'>('word_weights');
   const [logFilter, setLogFilter] = useState<'all' | 'wrong_only' | 'high_error'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | WordWeightStatus>('all');
   const [selectedSetFilter, setSelectedSetFilter] = useState<string>('all');
@@ -132,25 +132,11 @@ export function HistoryTab() {
 
       {/* Mode Switcher & Filter Bar */}
       <div className="bg-[#161B18] border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* View Mode Tabs */}
+        {/* View Mode Label */}
         <div className="inline-flex p-1 rounded-xl bg-[#0D110F] border border-white/10 self-start">
           <button
-            onClick={() => setViewMode('timeline')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              viewMode === 'timeline'
-                ? 'bg-[#7CE3B3] text-[#0D110F]'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            作答歷史時間軸 ({practiceLogs.length})
-          </button>
-          <button
             onClick={() => setViewMode('word_weights')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              viewMode === 'word_weights'
-                ? 'bg-[#7CE3B3] text-[#0D110F]'
-                : 'text-zinc-400 hover:text-white'
-            }`}
+            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#7CE3B3] text-[#0D110F] cursor-pointer"
           >
             單字出題狀態標籤 ({words.length})
           </button>
