@@ -610,7 +610,7 @@ export function QuizModal() {
     const { questions, selectionSummary } = sessionData;
     const answeredMcCount = questions.filter((_, idx) => Boolean(mcSelections[String(idx)])).length;
     const correctMcCount = questions.filter(
-      (q, idx) => mcSelections[String(idx)] === q.correctLabel
+      (q, idx) => Boolean(mcSelections[String(idx)]) && mcSelections[String(idx)] === q.correctLabel
     ).length;
     const wrongMcCount = answeredMcCount - correctMcCount;
     const allMcAnswered = questions.length > 0 && answeredMcCount === questions.length;

@@ -322,16 +322,69 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
     const unsubSub = subscribeMcpQuizzesFromSubcollection((subItems) => {
       if (subItems.length === 0) return;
       isRemoteUpdateRef.current = true;
+      const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
       const normalizedSub = subItems.map((q) => {
         const raw = q as unknown as Record<string, unknown>;
         const t = String(raw.type || '').toLowerCase();
+        let sentence = String(raw.sentence || raw.question || raw.prompt || raw.text || '');
+        if (sentence && !sentence.includes('{{BLANK}}') && /_{3,}/.test(sentence)) {
+          sentence = sentence.replace(
+            /[a-zA-Z]*_{3,}[a-zA-Z]*(?:\s+[a-zA-Z]*_{3,}[a-zA-Z]*)*/,
+            '{{BLANK}}'
+          );
+        }
+        const targetTerm = String(raw.targetTerm || raw.answer || raw.word || raw.term || '');
         const questionHash =
           String(raw.questionHash || '').trim() ||
-          computeQuestionHash(String(raw.passage || raw.sentence || raw.id || ''));
+          computeQuestionHash(String(raw.passage || sentence || raw.id || targetTerm));
+
         if (t === 'word_bank_cloze' || (raw.passage && Array.isArray(raw.answers))) {
           return { ...raw, type: 'word_bank_cloze' as const, questionHash } as QuizItem;
         }
-        return { ...raw, questionHash } as QuizItem;
+        if (t === 'multiple_choice_cloze' || (Array.isArray(raw.options) && raw.options.length === 4)) {
+          const rawOpts = Array.isArray(raw.options) ? raw.options : [];
+          const normalizedOptions = rawOpts.slice(0, 4).map((opt, idx) => {
+            if (typeof opt === 'string') {
+              return { label: labels[idx], term: opt.replace(/^[A-D][\.\)]\s*/i, '').trim() };
+            }
+            const obj = (opt || {}) as Record<string, unknown>;
+            return {
+              label: (String(obj.label || obj.letter || labels[idx]).toUpperCase().slice(0, 1) ||
+                labels[idx]) as 'A' | 'B' | 'C' | 'D',
+              term: String(obj.term || obj.text || obj.value || obj.word || '').trim(),
+            };
+          });
+          let correctLabel = String(raw.correctLabel || '').toUpperCase().slice(0, 1) as
+            | 'A'
+            | 'B'
+            | 'C'
+            | 'D';
+          if (!['A', 'B', 'C', 'D'].includes(correctLabel)) {
+            const matched = normalizedOptions.find(
+              (o) => o.term.toLowerCase() === targetTerm.trim().toLowerCase()
+            );
+            correctLabel = matched ? matched.label : 'A';
+          }
+          return {
+            ...raw,
+            type: 'multiple_choice_cloze' as const,
+            sentence,
+            targetTerm,
+            options: normalizedOptions,
+            correctLabel,
+            questionHash,
+          } as QuizItem;
+        }
+        return {
+          ...raw,
+          type: 'letter_hint_cloze' as const,
+          sentence,
+          targetTerm,
+          baseTerm: String(raw.baseTerm || targetTerm),
+          pos: String(raw.pos || ''),
+          chineseHint: String(raw.chineseHint || raw.meaning || raw.definition || ''),
+          questionHash,
+        } as QuizItem;
       });
       setQuizBank((prev) => {
         const map = new Map(prev.map((q) => [q.id, q]));

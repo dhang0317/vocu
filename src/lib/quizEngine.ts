@@ -365,14 +365,14 @@ export function buildWordBankQuizSession(params: {
 
     const newLetterByWordId = new Map(shuffledOptions.map((o) => [o.wordId, o.letter]));
     const newLetterByTerm = new Map(
-      shuffledOptions.map((o) => [o.term.trim().toLowerCase(), o.letter])
+      shuffledOptions.map((o) => [String(o.term || '').trim().toLowerCase(), o.letter])
     );
 
     const updatedAnswers = best.quiz.answers.map((ans) => ({
       ...ans,
       optionLetter:
         newLetterByWordId.get(ans.wordId) ||
-        newLetterByTerm.get(ans.term.trim().toLowerCase()) ||
+        newLetterByTerm.get(String(ans.term || '').trim().toLowerCase()) ||
         ans.optionLetter,
     }));
 
