@@ -119,7 +119,8 @@ export async function POST(req: NextRequest) {
               },
               {
                 name: 'push_quiz_items',
-                description: '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫',
+                description:
+                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（單次最多 25 題）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title, passage 含 (1) ______ ~ (10) ______, options[10], answers[10]）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}, options[4], correctLabel, targetTerm）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}, targetTerm, pos, chineseHint）。',
                 inputSchema: {
                   type: 'object',
                   properties: {
