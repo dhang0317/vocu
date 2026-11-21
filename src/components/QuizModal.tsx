@@ -76,6 +76,10 @@ export function QuizModal() {
   const [mcSelections, setMcSelections] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
   const [mcCurrentIndex, setMcCurrentIndex] = useState(0);
 
+  // 文意字彙 (Letter Hint Cloze) 單題即時批改狀態
+  const [lhCurrentIndex, setLhCurrentIndex] = useState(0);
+  const [lhSubmittedMap, setLhSubmittedMap] = useState<Record<string, boolean>>({});
+
   // 每次開啟新的測驗場次時，強制重置所有作答與交卷狀態
   React.useEffect(() => {
     setIsSubmitted(false);
@@ -84,6 +88,8 @@ export function QuizModal() {
     setLetterHintInputs({});
     setMcSelections({});
     setMcCurrentIndex(0);
+    setLhCurrentIndex(0);
+    setLhSubmittedMap({});
   }, [activeQuiz]);
 
   // 組題：根據 activeQuiz 與 sessionSeed 執行「防重複 + 弱點加權」演算法
@@ -914,50 +920,52 @@ export function QuizModal() {
     );
   }
 
-  const answeredCount = questions.filter((q) =>
-    Boolean(letterHintInputs[q.id]?.trim())
-  ).length;
+  const answeredLhCount = questions.filter((_, idx) => Boolean(lhSubmittedMap[String(idx)])).length;
+  const correctLhCount = questions.filter((q, idx) => {
+    if (!lhSubmittedMap[String(idx)]) return false;
+    return checkLetterHintAnswer(letterHintInputs[String(idx)] || '', q.targetTerm || '', q.baseTerm);
+  }).length;
+  const wrongLhCount = answeredLhCount - correctLhCount;
+  const allLhAnswered = questions.length > 0 && answeredLhCount === questions.length;
 
-  const handleSubmitLetterHint = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitted) return;
-    setIsSubmitted(true);
+  const handleSubmitSingleLh = (idx: number, q: (typeof questions)[number]) => {
+    const key = String(idx);
+    if (lhSubmittedMap[key]) return;
+    const userAns = (letterHintInputs[key] || '').trim();
+    const isCorrect = checkLetterHintAnswer(userAns, q.targetTerm || '', q.baseTerm);
 
-    const entries = questions.map((q) => {
-      const userAns = (letterHintInputs[q.id] || '').trim();
-      const isCorrect = checkLetterHintAnswer(
-        userAns,
-        q.targetTerm,
-        q.baseTerm
-      );
-      return {
+    setLhSubmittedMap((prev) => ({ ...prev, [key]: true }));
+    if (isCorrect) {
+      updateSettings({
+        questionRatings: {
+          ...(settings.questionRatings || {}),
+          [q.questionHash]: 5,
+        },
+      });
+    }
+    recordQuizSubmission([
+      {
         wordId: q.wordId,
         setId: q.setId,
-        questionType: 'letter_hint_cloze' as const,
+        questionType: 'letter_hint_cloze',
         questionHash: q.questionHash,
         userAnswer: userAns || '(未填答)',
         isCorrect,
-      };
-    });
-
-    recordQuizSubmission(entries);
+      },
+    ]);
   };
-
-  const correctLetterCount = isSubmitted
-    ? questions.filter((q) =>
-        checkLetterHintAnswer(
-          letterHintInputs[q.id] || '',
-          q.targetTerm,
-          q.baseTerm
-        )
-      ).length
-    : 0;
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md overflow-y-auto">
       <div className="max-w-[850px] mx-auto px-4 py-6 sm:py-10 space-y-6">
-        {/* Minimal Top Close Bar (Unified with Multiple Choice) */}
-        <div className="flex items-center justify-end">
+        {/* Minimal Top Bar (Unified with Multiple Choice) */}
+        <div className="flex items-center justify-end gap-2">
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#F472B6]/20 text-[#F472B6]">
+            ✗ {wrongLhCount}
+          </span>
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#7CE3B3]/20 text-[#7CE3B3]">
+            ✓ {correctLhCount}
+          </span>
           <button
             onClick={closeQuiz}
             className="p-2 rounded-xl bg-[#161B18] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
@@ -966,48 +974,55 @@ export function QuizModal() {
           </button>
         </div>
 
-        {/* 題目列表 */}
-        <form onSubmit={handleSubmitLetterHint} className="space-y-4">
-          {questions.map((q, idx) => {
-            const maskedHint = generateLetterHintMask(q.targetTerm);
-            const isMultiWord = (q.targetTerm || '').trim().includes(' ');
-            const userVal = letterHintInputs[q.id] || '';
-            const isCorrect =
-              isSubmitted &&
-              checkLetterHintAnswer(userVal, q.targetTerm || '', q.baseTerm);
+        {/* 進度條 */}
+        <div className="w-full h-2 rounded-full bg-[#161B18] overflow-hidden border border-white/10">
+          <div
+            className="h-full bg-[#7CE3B3] transition-all duration-300"
+            style={{
+              width: `${questions.length > 0 ? Math.round(((lhCurrentIndex + 1) / questions.length) * 100) : 0}%`,
+            }}
+          />
+        </div>
 
-            const cleanSentence = (q.sentence || '')
-              .replace(/[a-zA-Z]*\{\{BLANK\}\}[a-zA-Z]*/g, '{{BLANK}}')
-              .replace(/[a-zA-Z]*_{3,}[a-zA-Z]*/g, '{{BLANK}}');
-            const parts = cleanSentence.split('{{BLANK}}');
-            const updatedWord = words.find((w) => w.id === q.wordId);
-            const updatedPriority = updatedWord
-              ? analyzeWordPriority(
-                  updatedWord,
-                  practiceLogs,
-                  settings.cooldownThreshold
-                )
-              : null;
+        {(() => {
+          const q = questions[lhCurrentIndex];
+          if (!q) return null;
+          const key = String(lhCurrentIndex);
+          const isQuestionSubmitted = Boolean(lhSubmittedMap[key]);
+          const maskedHint = generateLetterHintMask(q.targetTerm);
+          const isMultiWord = (q.targetTerm || '').trim().includes(' ');
+          const userVal = letterHintInputs[key] || '';
+          const isCorrect =
+            isQuestionSubmitted &&
+            checkLetterHintAnswer(userVal, q.targetTerm || '', q.baseTerm);
 
-            return (
+          const cleanSentence = (q.sentence || '')
+            .replace(/[a-zA-Z]*\{\{BLANK\}\}[a-zA-Z]*/g, '{{BLANK}}')
+            .replace(/[a-zA-Z]*_{3,}[a-zA-Z]*/g, '{{BLANK}}');
+          const parts = cleanSentence.split('{{BLANK}}');
+          const isLastQuestion = lhCurrentIndex >= questions.length - 1;
+
+          return (
+            <div className="space-y-4">
               <div
                 key={q.id}
                 className={`bg-[#161B18] border rounded-2xl p-6 space-y-4 transition ${
-                  !isSubmitted
+                  !isQuestionSubmitted
                     ? 'border-white/10'
                     : isCorrect
                       ? 'border-[#7CE3B3]/50'
                       : 'border-[#F472B6]/50'
                 }`}
               >
-                {/* Minimal Question Header */}
-                <div className="flex items-center">
+                <div className="flex items-center justify-between text-xs text-zinc-400">
+                  <span className="font-bold text-white">
+                    第 {lhCurrentIndex + 1} / {questions.length} 題
+                  </span>
                   <span className="text-xs px-2.5 py-0.5 rounded-md bg-white/5 text-zinc-400">
                     {q.pos} {isMultiWord ? '多字片語' : '單字'}
                   </span>
                 </div>
 
-                {/* Sentence with Masked Hint */}
                 <p className="text-base text-zinc-100 leading-relaxed">
                   {parts[0]}
                   <span className="inline-block mx-1.5 px-3 py-0.5 rounded-lg bg-[#0D110F] border border-[#7CE3B3]/40 text-[#7CE3B3] font-mono font-bold">
@@ -1016,162 +1031,126 @@ export function QuizModal() {
                   {parts[1]}
                 </p>
 
-                {/* Input Field (Hidden answers before submit!) */}
-                <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row gap-2.5">
                   <input
-                    id={`letter-hint-input-${idx + 1}`}
+                    id={`letter-hint-input-${lhCurrentIndex + 1}`}
                     type="text"
                     autoComplete="off"
                     autoCorrect="off"
                     autoCapitalize="none"
                     spellCheck={false}
-                    disabled={isSubmitted}
+                    disabled={isQuestionSubmitted}
                     value={userVal}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
+                        if (!isQuestionSubmitted && userVal.trim()) {
+                          handleSubmitSingleLh(lhCurrentIndex, q);
+                        }
                       }
                     }}
                     onChange={(e) =>
                       setLetterHintInputs((prev) => ({
                         ...prev,
-                        [q.id]: e.target.value,
+                        [key]: e.target.value,
                       }))
                     }
                     placeholder={isMultiWord ? '輸入完整多字片語' : '輸入完整單字拼字'}
-                    className={`w-full px-4 py-3 rounded-xl bg-[#0D110F] border text-sm font-mono text-white focus:outline-none transition ${
-                      !isSubmitted
+                    className={`flex-1 px-4 py-3 rounded-xl bg-[#0D110F] border text-sm font-mono text-white focus:outline-none transition ${
+                      !isQuestionSubmitted
                         ? 'border-white/15 focus:border-[#7CE3B3]'
                         : isCorrect
                           ? 'border-[#7CE3B3] text-[#7CE3B3]'
                           : 'border-[#F472B6] text-[#F472B6]'
                     }`}
                   />
-
-                  {/* Post-Submit Answer & Explanation Reveal */}
-                  {isSubmitted && (
-                    <div
-                      className={`mt-3 p-4 rounded-xl border space-y-2 ${
-                        isCorrect
-                          ? 'bg-[#0D110F] border-[#7CE3B3]/30'
-                          : 'bg-[#0D110F] border-[#F472B6]/40'
-                      }`}
+                  {!isQuestionSubmitted && (
+                    <button
+                      type="button"
+                      onClick={() => handleSubmitSingleLh(lhCurrentIndex, q)}
+                      className="px-6 py-3 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] text-sm font-bold transition cursor-pointer shrink-0"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex flex-wrap items-center gap-2.5">
-                          {isCorrect ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-[#7CE3B3]">
-                              <CheckCircle2 className="w-4 h-4" />
-                              拼字正確！
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-[#F472B6]">
-                              <XCircle className="w-4 h-4" />
-                              你的作答：{userVal.trim() || '(未填答)'}
-                            </span>
-                          )}
-
-                          <span className="text-xs text-zinc-300">
-                            正確拼字：{' '}
-                            <code className="px-2 py-0.5 rounded bg-[#7CE3B3]/15 text-[#7CE3B3] font-mono font-bold">
-                              {q.targetTerm}
-                            </code>
-                          </span>
-
-                          <span className="text-xs text-zinc-400">
-                            中文釋義：{q.pos} {q.chineseHint}
-                          </span>
-                        </div>
-
-                        {updatedPriority && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] text-zinc-500">
-                              更新後權重：
-                            </span>
-                            <WeightStatusBadge status={updatedPriority.status} />
-                          </div>
-                        )}
-                      </div>
-
-                      <p className="text-xs text-zinc-300 leading-relaxed">
-                        {q.explanation}
-                      </p>
-                      {renderRatingBar(q.questionHash)}
-                    </div>
+                      確認答案
+                    </button>
                   )}
                 </div>
-              </div>
-            );
-          })}
 
-          {/* Bottom Submit / Post-Submit Action Bar */}
-          {!isSubmitted ? (
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={closeQuiz}
-                className="px-5 py-3.5 rounded-2xl bg-[#161B18] border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer"
-              >
-                暫停離開
-              </button>
-              <button
-                id="submit-letterhint-quiz-btn"
-                type="submit"
-                className="flex-1 sm:flex-initial px-8 py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-sm shadow-lg shadow-[#7CE3B3]/10 inline-flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <Send className="w-4 h-4" />
-                <span>
-                  統一交卷並看解析（已填 {answeredCount}/{questions.length} 題）
-                </span>
-              </button>
-            </div>
-          ) : (
-            <div className="bg-[#161B18] border border-[#7CE3B3]/40 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#7CE3B3]">
-                  SESSION COMPLETED
-                </span>
-                <h3 className="text-xl font-bold text-white mt-0.5">
-                  本回合成績：{correctLetterCount} / {questions.length} 題正確（
-                  {questions.length > 0
-                    ? Math.round((correctLetterCount / questions.length) * 100)
-                    : 0}
-                  %）
-                </h3>
-                <p className="text-xs text-zinc-400 mt-0.5">
-                  所有作答已寫入 PracticeLog。點擊「根據最新記錄重新出題」將自動排除剛做過的題幹並優先針對新錯題出題！
-                </p>
+                {isQuestionSubmitted && (
+                  <div className="mt-2 p-4 rounded-xl bg-[#0D110F] border border-white/10 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2.5 text-xs font-bold">
+                      {isCorrect ? (
+                        <span className="text-[#7CE3B3]">
+                          ✓ 拼字正確！正確拼字：{q.targetTerm}
+                        </span>
+                      ) : (
+                        <span className="text-[#F472B6]">
+                          ✗ 答錯，正確拼字：{q.targetTerm}
+                        </span>
+                      )}
+                      {q.chineseHint && (
+                        <span className="text-zinc-400 font-normal">
+                          （{q.pos} {q.chineseHint}）
+                        </span>
+                      )}
+                    </div>
+                    {q.explanation && (
+                      <p className="text-xs text-zinc-300 leading-relaxed">{q.explanation}</p>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              {isQuestionSubmitted && !isLastQuestion && (
                 <button
                   type="button"
-                  onClick={() => {
-                    closeQuiz();
-                    setActiveTab('history');
-                  }}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D110F] hover:bg-white/5 border border-white/15 text-xs font-semibold text-white transition cursor-pointer"
+                  onClick={() => setLhCurrentIndex((i) => i + 1)}
+                  className="w-full py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-sm transition cursor-pointer"
                 >
-                  <History className="w-3.5 h-3.5 text-[#7CE3B3]" />
-                  <span>查看作答記錄</span>
+                  下一題（{lhCurrentIndex + 2} / {questions.length}）→
                 </button>
-                <button
-                  id="next-adaptive-round-btn"
-                  type="button"
-                  onClick={() => {
-                    setIsSubmitted(false);
-                    setLetterHintInputs({});
-                    setSessionSeed((s) => s + 1);
-                  }}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] text-xs font-bold transition cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>根據最新記錄重新出題</span>
-                </button>
-              </div>
+              )}
+
+              {allLhAnswered && isLastQuestion && (
+                <div className="bg-[#161B18] border border-[#7CE3B3]/40 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#7CE3B3]">
+                      SESSION COMPLETED
+                    </span>
+                    <h3 className="text-xl font-bold text-white mt-0.5">
+                      本回合成績：{correctLhCount} / {questions.length} 題正確
+                    </h3>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeQuiz();
+                        setActiveTab('history');
+                      }}
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D110F] border border-white/15 text-xs font-semibold text-white cursor-pointer"
+                    >
+                      <History className="w-3.5 h-3.5 text-[#7CE3B3]" />
+                      <span>查看作答記錄</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLetterHintInputs({});
+                        setLhSubmittedMap({});
+                        setLhCurrentIndex(0);
+                        setSessionSeed((s) => s + 1);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>根據最新記錄重新出題</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </form>
+          );
+        })()}
       </div>
     </div>
   );
