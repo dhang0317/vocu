@@ -1027,6 +1027,11 @@ export function QuizModal() {
                     spellCheck={false}
                     disabled={isSubmitted}
                     value={userVal}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                      }
+                    }}
                     onChange={(e) =>
                       setLetterHintInputs((prev) => ({
                         ...prev,
