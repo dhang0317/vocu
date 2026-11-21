@@ -118,4 +118,5 @@ export interface UserSettings {
   mcpServerUrl: string;
   mcpApiKey: string;
   mcpConnectedAgent: string;
+  questionRatings?: Record<string, number>; // questionHash -> 1~5 分，>= 4 分之後不再出題
 }

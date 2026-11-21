@@ -188,7 +188,10 @@ export function buildLetterHintQuizSession(params: {
   const { setId, words, logs, quizBank, settings, questionCount = 5, onlyWrongWords = false } = params;
 
   const setWords = setId === 'all' ? words : words.filter((w) => w.setId === setId);
-  const answeredHashes = new Set(logs.map((l) => l.questionHash));
+  const retiredHashes = Object.entries(settings.questionRatings || {})
+    .filter(([, score]) => score >= 4)
+    .map(([hash]) => hash);
+  const answeredHashes = new Set([...logs.map((l) => l.questionHash), ...retiredHashes]);
 
   const allAnalyzed = setWords.map((w) => analyzeWordPriority(w, logs, settings.cooldownThreshold));
   const skippedCooldownCount = allAnalyzed.filter((a) => a.status === 'cooldown').length;
@@ -311,7 +314,10 @@ export function buildWordBankQuizSession(params: {
   };
 } {
   const { setId, words, logs, quizBank, settings, onlyWrongWords = false } = params;
-  const answeredHashes = new Set(logs.map((l) => l.questionHash));
+  const retiredHashes = Object.entries(settings.questionRatings || {})
+    .filter(([, score]) => score >= 4)
+    .map(([hash]) => hash);
+  const answeredHashes = new Set([...logs.map((l) => l.questionHash), ...retiredHashes]);
   const setWords = setId === 'all' ? words : words.filter((w) => w.setId === setId);
 
   const allAnalyzed = setWords.map((w) => analyzeWordPriority(w, logs, settings.cooldownThreshold));
@@ -432,7 +438,10 @@ export function buildMultipleChoiceQuizSession(params: {
 } {
   const { setId, words, logs, quizBank, settings, questionCount = 5, onlyWrongWords = false } = params;
   const setWords = setId === 'all' ? words : words.filter((w) => w.setId === setId);
-  const answeredHashes = new Set(logs.map((l) => l.questionHash));
+  const retiredHashes = Object.entries(settings.questionRatings || {})
+    .filter(([, score]) => score >= 4)
+    .map(([hash]) => hash);
+  const answeredHashes = new Set([...logs.map((l) => l.questionHash), ...retiredHashes]);
 
   const allAnalyzed = setWords.map((w) => analyzeWordPriority(w, logs, settings.cooldownThreshold));
   const skippedCooldownCount = allAnalyzed.filter((a) => a.status === 'cooldown').length;

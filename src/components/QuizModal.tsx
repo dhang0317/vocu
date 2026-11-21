@@ -31,9 +31,54 @@ export function QuizModal() {
     practiceLogs,
     quizBank,
     settings,
+    updateSettings,
     recordQuizSubmission,
     setActiveTab,
   } = useVocu();
+
+  const renderRatingBar = (questionHash: string) => {
+    const currentScore = settings.questionRatings?.[questionHash];
+    return (
+      <div className="pt-2.5 mt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[11px] text-zinc-400">
+          為這題打分（4 分以上之後不再出這題）：
+        </span>
+        <div className="flex items-center gap-1.5">
+          {[1, 2, 3, 4, 5].map((score) => {
+            const active = currentScore === score;
+            return (
+              <button
+                key={score}
+                type="button"
+                onClick={() =>
+                  updateSettings({
+                    questionRatings: {
+                      ...(settings.questionRatings || {}),
+                      [questionHash]: score,
+                    },
+                  })
+                }
+                className={`w-7 h-7 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                  active
+                    ? score >= 4
+                      ? 'bg-[#7CE3B3] border-[#7CE3B3] text-[#0D110F]'
+                      : 'bg-[#FBBF24] border-[#FBBF24] text-[#0D110F]'
+                    : 'bg-[#161B18] border-white/15 text-zinc-300 hover:border-[#7CE3B3]/60'
+                }`}
+              >
+                {score}
+              </button>
+            );
+          })}
+          {currentScore && currentScore >= 4 && (
+            <span className="text-[11px] font-semibold text-[#7CE3B3] ml-1">
+              ✓ 已封存
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const [sessionSeed, setSessionSeed] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -762,6 +807,7 @@ export function QuizModal() {
                       {q.explanation && (
                         <p className="text-xs text-zinc-300 leading-relaxed">{q.explanation}</p>
                       )}
+                      {renderRatingBar(q.questionHash)}
                     </div>
                   )}
                 </div>
@@ -1056,6 +1102,7 @@ export function QuizModal() {
                       <p className="text-xs text-zinc-300 leading-relaxed">
                         {q.explanation}
                       </p>
+                      {renderRatingBar(q.questionHash)}
                     </div>
                   )}
                 </div>
