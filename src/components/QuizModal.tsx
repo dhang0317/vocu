@@ -37,45 +37,27 @@ export function QuizModal() {
   } = useVocu();
 
   const renderRatingBar = (questionHash: string) => {
-    const currentScore = settings.questionRatings?.[questionHash];
+    const isArchived = (settings.questionRatings?.[questionHash] ?? 0) >= 4;
     return (
-      <div className="pt-2.5 mt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-[11px] text-zinc-400">
-          為這題打分（4 分以上之後不再出這題）：
-        </span>
-        <div className="flex items-center gap-1.5">
-          {[1, 2, 3, 4, 5].map((score) => {
-            const active = currentScore === score;
-            return (
-              <button
-                key={score}
-                type="button"
-                onClick={() =>
-                  updateSettings({
-                    questionRatings: {
-                      ...(settings.questionRatings || {}),
-                      [questionHash]: score,
-                    },
-                  })
-                }
-                className={`w-7 h-7 rounded-lg text-xs font-bold border transition cursor-pointer ${
-                  active
-                    ? score >= 4
-                      ? 'bg-[#7CE3B3] border-[#7CE3B3] text-[#0D110F]'
-                      : 'bg-[#FBBF24] border-[#FBBF24] text-[#0D110F]'
-                    : 'bg-[#161B18] border-white/15 text-zinc-300 hover:border-[#7CE3B3]/60'
-                }`}
-              >
-                {score}
-              </button>
-            );
-          })}
-          {currentScore && currentScore >= 4 && (
-            <span className="text-[11px] font-semibold text-[#7CE3B3] ml-1">
-              ✓ 已封存
-            </span>
-          )}
-        </div>
+      <div className="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-end">
+        <button
+          type="button"
+          onClick={() =>
+            updateSettings({
+              questionRatings: {
+                ...(settings.questionRatings || {}),
+                [questionHash]: isArchived ? 0 : 5,
+              },
+            })
+          }
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+            isArchived
+              ? 'bg-[#7CE3B3]/20 border-[#7CE3B3] text-[#7CE3B3]'
+              : 'bg-[#161B18] border-white/15 text-zinc-300 hover:border-[#7CE3B3]/60 hover:text-white'
+          }`}
+        >
+          {isArchived ? '✓ 已封存（之後不再出現）' : '封存此題（之後不再出現）'}
+        </button>
       </div>
     );
   };
