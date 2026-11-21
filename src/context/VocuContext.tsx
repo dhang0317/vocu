@@ -339,7 +339,55 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
           computeQuestionHash(String(raw.passage || sentence || raw.id || targetTerm));
 
         if (t === 'word_bank_cloze' || (raw.passage && Array.isArray(raw.answers))) {
-          return { ...raw, type: 'word_bank_cloze' as const, questionHash } as QuizItem;
+          const wbLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+          const rawOpts = Array.isArray(raw.options) ? raw.options : [];
+          const normalizedWbOptions = rawOpts.slice(0, 10).map((opt, idx) => {
+            if (typeof opt === 'string') {
+              return {
+                letter: wbLetters[idx],
+                wordId: `wb-${idx}`,
+                term: opt.replace(/^\(?[A-J]\)?[\.\s]*/i, '').trim(),
+                pos: '',
+                definition: '',
+              };
+            }
+            const obj = (opt || {}) as Record<string, unknown>;
+            return {
+              letter: String(obj.letter || obj.label || wbLetters[idx])
+                .replace(/[()]/g, '')
+                .toUpperCase()
+                .slice(0, 1),
+              wordId: String(obj.wordId || obj.word_id || `wb-${idx}`),
+              term: String(obj.term || obj.word || obj.text || obj.value || '').trim(),
+              pos: String(obj.pos || ''),
+              definition: String(obj.definition || obj.meaning || ''),
+              correctBlankIndex:
+                typeof obj.correctBlankIndex === 'number' ? obj.correctBlankIndex : undefined,
+            };
+          });
+
+          const rawAns = Array.isArray(raw.answers) ? raw.answers : [];
+          const normalizedWbAnswers = rawAns.map((ans, idx) => {
+            const obj = (ans || {}) as Record<string, unknown>;
+            return {
+              blankNumber: Number(obj.blankNumber || obj.blank_index || idx + 1),
+              optionLetter: String(obj.optionLetter || obj.letter || obj.answer || '')
+                .replace(/[()]/g, '')
+                .toUpperCase()
+                .slice(0, 1),
+              wordId: String(obj.wordId || obj.word_id || `wb-${idx}`),
+              term: String(obj.term || obj.word || obj.text || '').trim(),
+              explanation: String(obj.explanation || ''),
+            };
+          });
+
+          return {
+            ...raw,
+            type: 'word_bank_cloze' as const,
+            options: normalizedWbOptions,
+            answers: normalizedWbAnswers,
+            questionHash,
+          } as QuizItem;
         }
         if (t === 'multiple_choice_cloze' || (Array.isArray(raw.options) && raw.options.length === 4)) {
           const rawOpts = Array.isArray(raw.options) ? raw.options : [];
