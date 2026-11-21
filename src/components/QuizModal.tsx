@@ -118,7 +118,7 @@ export function QuizModal() {
         logs: practiceLogs,
         quizBank,
         settings,
-        questionCount: activeQuiz.questionCount || 5,
+        questionCount: 9999,
         onlyWrongWords: activeQuiz.onlyWrongWords,
       });
       return {
@@ -132,7 +132,7 @@ export function QuizModal() {
         logs: practiceLogs,
         quizBank,
         settings,
-        questionCount: activeQuiz.questionCount || 5,
+        questionCount: 9999,
         onlyWrongWords: activeQuiz.onlyWrongWords,
       });
       return {

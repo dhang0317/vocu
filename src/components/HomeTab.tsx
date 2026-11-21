@@ -289,8 +289,8 @@ export function HomeTab() {
               {selectedQuestionType === 'word_bank_cloze'
                 ? '文意選填 10 題'
                 : selectedQuestionType === 'multiple_choice_cloze'
-                  ? '單句克漏字 5 題'
-                  : '文意字彙 5 題'}
+                  ? '單句克漏字・無止盡'
+                  : '文意字彙・無止盡'}
               ）
             </span>
           </button>
