@@ -367,7 +367,16 @@ export async function POST(req: NextRequest) {
                 { headers: CORS_HEADERS }
               );
             }
-            const uniqueTerms = new Set(item.options.map((o) => o.term?.toLowerCase().trim()));
+            const uniqueTerms = new Set(
+              item.options
+                .map((o) => {
+                  const raw = o as unknown;
+                  if (typeof raw === 'string') return raw.replace(/^\(?[A-J]\)?[\.\s]*/i, '').trim().toLowerCase();
+                  const obj = (raw || {}) as Record<string, unknown>;
+                  return String(obj.term || obj.word || obj.text || obj.value || '').trim().toLowerCase();
+                })
+                .filter(Boolean)
+            );
             if (uniqueTerms.size !== 10) {
               return NextResponse.json(
                 {
