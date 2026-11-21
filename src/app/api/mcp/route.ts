@@ -277,7 +277,18 @@ export async function POST(req: NextRequest) {
 
       if (toolName === 'check_question_hash') {
         const hash = computeQuestionHash(String(args.text || ''));
-        const exists = workspace.practiceLogs.some((l) => l.questionHash === hash);
+        const subQuizzes = await loadMcpQuizzesFromSubcollection();
+        const archivedHashes = new Set(
+          Object.entries(workspace.settings?.questionRatings || {})
+            .filter(([, score]) => score >= 4)
+            .map(([h]) => h)
+        );
+        const inLogs = workspace.practiceLogs.some((l) => l.questionHash === hash);
+        const inBank =
+          workspace.quizBank.some((q) => q.questionHash === hash) ||
+          subQuizzes.some((q) => q.questionHash === hash);
+        const isArchived = archivedHashes.has(hash);
+
         return NextResponse.json(
           {
             jsonrpc: '2.0',
@@ -286,7 +297,13 @@ export async function POST(req: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({ questionHash: hash, alreadyAnswered: exists }),
+                  text: JSON.stringify({
+                    questionHash: hash,
+                    alreadyExistsOrAnswered: inLogs || inBank || isArchived,
+                    inPracticeLogs: inLogs,
+                    inQuizBank: inBank,
+                    isArchived,
+                  }),
                 },
               ],
             },
@@ -609,7 +626,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (toolName === 'get_quiz_items') {
-        const limit = typeof args.limit === 'number' ? args.limit : 50;
+        const limit = typeof args.limit === 'number' ? args.limit : 200;
         const subQuizzes = await loadMcpQuizzesFromSubcollection();
         const mergedMap = new Map<string, QuizItem>();
         [...workspace.quizBank, ...subQuizzes].forEach((q) => mergedMap.set(q.id, q));
@@ -617,16 +634,24 @@ export async function POST(req: NextRequest) {
         if (args.setId) {
           allQuizzes = allQuizzes.filter((q) => q.setId === args.setId);
         }
+
+        const answeredHashes = new Set(workspace.practiceLogs.map((l) => l.questionHash));
+        const archivedHashes = new Set(
+          Object.entries(workspace.settings?.questionRatings || {})
+            .filter(([, score]) => score >= 4)
+            .map(([h]) => h)
+        );
+
         const summary = allQuizzes.slice(0, limit).map((q) => ({
           id: q.id,
           setId: q.setId,
           type: q.type,
           questionHash: q.questionHash,
           targetTerm: q.type === 'word_bank_cloze' ? q.title : q.targetTerm,
-          preview:
-            q.type === 'word_bank_cloze'
-              ? q.passage.slice(0, 80)
-              : (q.sentence || '').slice(0, 80),
+          isAnswered: answeredHashes.has(q.questionHash),
+          isArchived: archivedHashes.has(q.questionHash),
+          sentenceOrPassage:
+            q.type === 'word_bank_cloze' ? q.passage : q.sentence || '',
         }));
 
         return NextResponse.json(
@@ -638,7 +663,19 @@ export async function POST(req: NextRequest) {
                 {
                   type: 'text',
                   text: JSON.stringify(
-                    { total: allQuizzes.length, items: summary },
+                    {
+                      total: allQuizzes.length,
+                      archivedCount: archivedHashes.size,
+                      answeredCount: answeredHashes.size,
+                      avoidQuestionHashes: Array.from(
+                        new Set([
+                          ...allQuizzes.map((q) => q.questionHash),
+                          ...answeredHashes,
+                          ...archivedHashes,
+                        ])
+                      ),
+                      items: summary,
+                    },
                     null,
                     2
                   ),
