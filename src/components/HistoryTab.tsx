@@ -112,28 +112,6 @@ export function HistoryTab() {
         </button>
       </div>
 
-      {/* Summary Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-[#161B18] border border-white/10 rounded-2xl p-4">
-          <span className="text-xs text-zinc-400">累計作答題次</span>
-          <div className="text-2xl font-bold text-white mt-1">{totalAttempts} 題</div>
-        </div>
-        <div className="bg-[#161B18] border border-white/10 rounded-2xl p-4">
-          <span className="text-xs text-zinc-400">整體正確率</span>
-          <div className="text-2xl font-bold text-[#7CE3B3] mt-1">{accuracyRate}%</div>
-        </div>
-        <div className="bg-[#161B18] border border-white/10 rounded-2xl p-4">
-          <span className="text-xs text-zinc-400">弱點優先字詞</span>
-          <div className="text-2xl font-bold text-[#F472B6] mt-1">{weaknessWordsCount} 字</div>
-        </div>
-        <div className="bg-[#161B18] border border-white/10 rounded-2xl p-4">
-          <span className="text-xs text-zinc-400">冷卻中字詞</span>
-          <div className="text-2xl font-bold text-[#60A5FA] mt-1">
-            {analyzedWords.filter((i) => i.analysis.status === 'cooldown').length} 字
-          </div>
-        </div>
-      </div>
-
       {/* MCP Server 連線網址 */}
       <div className="bg-[#161B18] border border-[#7CE3B3]/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
