@@ -653,6 +653,14 @@ export function QuizModal() {
 
       const chosenOpt = q.options.find((o) => o.label === label);
       const isCorrect = label === q.correctLabel;
+      if (isCorrect) {
+        updateSettings({
+          questionRatings: {
+            ...(settings.questionRatings || {}),
+            [q.questionHash]: 5,
+          },
+        });
+      }
       recordQuizSubmission([
         {
           wordId: q.wordId,
@@ -789,7 +797,6 @@ export function QuizModal() {
                       {q.explanation && (
                         <p className="text-xs text-zinc-300 leading-relaxed">{q.explanation}</p>
                       )}
-                      {renderRatingBar(q.questionHash)}
                     </div>
                   )}
                 </div>
