@@ -298,8 +298,29 @@ export async function POST(req: NextRequest) {
       if (toolName === 'push_quiz_items') {
         const incoming = (Array.isArray(args.items) ? args.items : []) as QuizItem[];
 
-        // Pre-save validation for word_bank_cloze items
-        for (const item of incoming) {
+        if (incoming.length === 0) {
+          return NextResponse.json(
+            { jsonrpc: '2.0', id, error: { code: -32602, message: 'items 陣列不可為空。' } },
+            { headers: CORS_HEADERS }
+          );
+        }
+        if (incoming.length > 25) {
+          return NextResponse.json(
+            {
+              jsonrpc: '2.0',
+              id,
+              error: {
+                code: -32602,
+                message: `Pre-save validation failed: 單次最多推送 25 題（目前 ${incoming.length} 題），請分批寫入以確保欄位完整。`,
+              },
+            },
+            { headers: CORS_HEADERS }
+          );
+        }
+
+        // Pre-save validation for all quiz types
+        for (let i = 0; i < incoming.length; i++) {
+          const item = incoming[i];
           if (item.type === 'word_bank_cloze') {
             const blankMatches = item.passage?.match(/\(\d+\)\s*______/g) || [];
             if (blankMatches.length !== 10) {
@@ -341,6 +362,56 @@ export async function POST(req: NextRequest) {
                 },
                 { headers: CORS_HEADERS }
               );
+            }
+          } else {
+            // 單句題型 (letter_hint_cloze / multiple_choice_cloze) 嚴格校驗
+            const term = String(item.targetTerm || '').trim();
+            if (!term || /^\d+$/.test(term)) {
+              return NextResponse.json(
+                {
+                  jsonrpc: '2.0',
+                  id,
+                  error: {
+                    code: -32602,
+                    message: `Pre-save validation failed (第 ${i + 1} 題): targetTerm 不可為空或純數字。`,
+                  },
+                },
+                { headers: CORS_HEADERS }
+              );
+            }
+            const sentence = String(item.sentence || '').trim();
+            if (!sentence || sentence.includes('【文意選填')) {
+              return NextResponse.json(
+                {
+                  jsonrpc: '2.0',
+                  id,
+                  error: {
+                    code: -32602,
+                    message: `Pre-save validation failed (第 ${i + 1} 題): 單句題型必須有完整 sentence，且不可混入文意選填短文。`,
+                  },
+                },
+                { headers: CORS_HEADERS }
+              );
+            }
+            if (item.type === 'multiple_choice_cloze') {
+              const opts = Array.isArray(item.options) ? item.options : [];
+              const validOpts = opts.filter((o) => {
+                const t = typeof o === 'string' ? o : o?.term;
+                return t && t.trim() !== '' && t.trim() !== '.';
+              });
+              if (validOpts.length !== 4) {
+                return NextResponse.json(
+                  {
+                    jsonrpc: '2.0',
+                    id,
+                    error: {
+                      code: -32602,
+                      message: `Pre-save validation failed (第 ${i + 1} 題): multiple_choice_cloze 必須包含 4 個有效選項（不可空白或單一點）。`,
+                    },
+                  },
+                  { headers: CORS_HEADERS }
+                );
+              }
             }
           }
         }
