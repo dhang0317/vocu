@@ -93,25 +93,6 @@ export function HistoryTab() {
 
   return (
     <div className="space-y-6 pb-24">
-      {/* Retest Wrong Words Action */}
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <button
-          id="retest-wrong-letter-btn"
-          onClick={() =>
-            startQuiz({
-              setId: selectedSetFilter,
-              questionType: 'letter_hint_cloze',
-              onlyWrongWords: true,
-              questionCount: 5,
-            })
-          }
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-xs shadow-sm transition cursor-pointer"
-        >
-          <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span>針對錯題重新測驗 ({weaknessWordsCount})</span>
-        </button>
-      </div>
-
       {/* MCP Server 連線網址 */}
       <div className="bg-[#161B18] border border-[#7CE3B3]/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
