@@ -263,6 +263,7 @@ export function HomeTab() {
         <div className="pt-2">
           <button
             id="start-practice-main-btn"
+            disabled={!isCloudReady}
             onClick={() =>
               startQuiz({
                 setId: currentSet?.id || wordSets[0].id,
@@ -271,11 +272,27 @@ export function HomeTab() {
                 questionCount: selectedQuestionType === 'word_bank_cloze' ? 10 : 5,
               })
             }
-            className={`w-full py-4 px-6 rounded-2xl font-bold text-base shadow-lg shadow-white/5 flex items-center justify-center gap-2.5 transition-all ${isCloudReady ? "bg-white hover:bg-zinc-200 active:scale-[0.995] text-[#000000] cursor-pointer" : "bg-white/20 text-zinc-400 cursor-not-allowed"}`}
+            className={`w-full py-4 px-6 rounded-2xl font-bold text-base shadow-lg shadow-white/5 flex items-center justify-center gap-2.5 transition-all ${
+              isCloudReady
+                ? 'bg-white hover:bg-zinc-200 active:scale-[0.995] text-[#000000] cursor-pointer'
+                : 'bg-[#000000] border border-white/15 text-zinc-400 cursor-not-allowed'
+            }`}
           >
-            <Play className="w-5 h-5 fill-[#000000]" />
+            {isCloudReady ? (
+              <Play className="w-5 h-5 fill-[#000000]" />
+            ) : (
+              <span className="w-4 h-4 rounded-full border-2 border-zinc-400 border-t-transparent animate-spin" />
+            )}
             <span>
-              {!isCloudReady ? '雲端題庫同步中...' : `開始練習（${selectedQuestionType === 'word_bank_cloze' ? '文意選填 10 題' : selectedQuestionType === 'multiple_choice_cloze' ? '單句克漏字・無止盡' : '文意字彙・無止盡'}）`}
+              {!isCloudReady
+                ? '雲端題庫同步中...'
+                : `開始練習（${
+                    selectedQuestionType === 'word_bank_cloze'
+                      ? '文意選填 10 題'
+                      : selectedQuestionType === 'multiple_choice_cloze'
+                        ? '單句克漏字・無止盡'
+                        : '文意字彙・無止盡'
+                  }）`}
             </span>
           </button>
         </div>
