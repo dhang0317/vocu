@@ -657,12 +657,15 @@ export async function POST(req: NextRequest) {
           if (item.type !== 'word_bank_cloze') {
             let resolvedWordId = item.wordId;
             if (!resolvedWordId || !wordById.has(resolvedWordId)) {
-              const matchedWord = item.targetTerm
-                ? wordByTerm.get(item.targetTerm.trim().toLowerCase())
+              const targetKey = item.targetTerm ? item.targetTerm.trim().toLowerCase() : '';
+              const matchedWord = targetKey
+                ? workspace.words.find(
+                    (w) => w.setId === resolvedSetId && w.term.trim().toLowerCase() === targetKey
+                  ) || wordByTerm.get(targetKey)
                 : undefined;
               if (matchedWord) {
                 resolvedWordId = matchedWord.id;
-                if (!item.setId) resolvedSetId = matchedWord.setId;
+                if (!item.setId && !args.setId) resolvedSetId = matchedWord.setId;
               }
             }
             if (resolvedWordId) {
