@@ -18,9 +18,9 @@ import {
   INITIAL_USER_SETTINGS,
 } from '@/lib/seedData';
 import {
-  subscribeWorkspaceFromFirestore,
+  loadWorkspaceFromFirestore,
   saveWorkspaceToFirestore,
-  subscribeMcpQuizzesFromSubcollection,
+  loadMcpQuizzesFromSubcollection,
   saveMcpQuizzesToSubcollection,
 } from '@/lib/firestoreSync';
 import { computeQuestionHash } from '@/lib/masking';
@@ -150,12 +150,14 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(t);
   }, [wordSets, words, practiceLogs, settings, recentSetId, isHydrated]);
 
-  // Subscribe to Cloud Firestore in real time so MCP Agent pushes appear immediately
+  // Load from Cloud Firestore once on mount (saves 90%+ network traffic vs real-time onSnapshot)
   const isRemoteUpdateRef = React.useRef(false);
   const hasMountedRef = React.useRef(false);
 
   useEffect(() => {
-    const unsubscribe = subscribeWorkspaceFromFirestore((remote) => {
+    let active = true;
+    loadWorkspaceFromFirestore().then((remote) => {
+      if (!active || !remote) return;
       isRemoteUpdateRef.current = true;
       if (Array.isArray(remote.wordSets)) setWordSets(remote.wordSets);
       if (Array.isArray(remote.words)) setWords(remote.words);
@@ -315,12 +317,15 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
         isRemoteUpdateRef.current = false;
       }, 100);
     });
-    return () => unsubscribe();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    const unsubSub = subscribeMcpQuizzesFromSubcollection((subItems) => {
-      if (subItems.length === 0) return;
+    let active = true;
+    loadMcpQuizzesFromSubcollection().then((subItems) => {
+      if (!active || subItems.length === 0) return;
       isRemoteUpdateRef.current = true;
       const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
       const normalizedSub = subItems.map((q) => {
@@ -443,7 +448,9 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
         isRemoteUpdateRef.current = false;
       }, 100);
     });
-    return () => unsubSub();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -462,7 +469,7 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
         settings,
         updatedAt: new Date().toISOString(),
       });
-    }, 1000);
+    }, 4000);
     return () => clearTimeout(timer);
   }, [wordSets, words, practiceLogs, settings]);
 
