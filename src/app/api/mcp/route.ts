@@ -142,6 +142,10 @@ export async function POST(req: NextRequest) {
                 inputSchema: {
                   type: 'object',
                   properties: {
+                    setId: {
+                      type: 'string',
+                      description: '選填：目標單字集 ID 或名稱（若單題未指定 setId，將套用此值）',
+                    },
                     items: {
                       type: 'array',
                       description:
@@ -587,8 +591,9 @@ export async function POST(req: NextRequest) {
           const fallbackText =
             item.type === 'word_bank_cloze' ? item.passage : item.sentence;
 
-          // Resolve setId (accepts exact id or set title, falls back to first set)
-          let resolvedSetId = item.setId;
+          // Resolve setId (accepts exact id or set title, falls back to top-level args.setId or first set)
+          let resolvedSetId =
+            item.setId || (typeof args.setId === 'string' ? args.setId : undefined);
           if (!resolvedSetId || !setById.has(resolvedSetId)) {
             const byTitle = resolvedSetId
               ? setByTitle.get(resolvedSetId.trim().toLowerCase())
