@@ -292,7 +292,7 @@ export async function POST(req: NextRequest) {
                     hasMore,
                     nextOffset,
                     wordSets: setsWithCount,
-                    words: pagedWords,
+                    words: pagedWords.map(({ id, setId, term, pos, definition }) => ({ id, setId, term, pos, definition })),
                   }),
                 },
               ],
@@ -322,7 +322,7 @@ export async function POST(req: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(analyzed, null, 2),
+                  text: JSON.stringify(analyzed),
                 },
               ],
             },
@@ -813,10 +813,7 @@ export async function POST(req: NextRequest) {
                       message: `成功建立全新單字集「${title}」`,
                       setId: newSet.id,
                       wordSet: newSet,
-                    },
-                    null,
-                    2
-                  ),
+                    }),
                 },
               ],
             },
@@ -879,10 +876,7 @@ export async function POST(req: NextRequest) {
                       archivedCount: archivedHashes.size,
                       answeredCount: answeredHashes.size,
                       items: summary,
-                    },
-                    null,
-                    2
-                  ),
+                    }),
                 },
               ],
             },
