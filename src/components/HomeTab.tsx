@@ -130,7 +130,7 @@ export function HomeTab() {
                 onClick={() => setRecentSetId(set.id)}
                 className={`text-left p-4 rounded-2xl border transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#000000] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
+                    ? 'bg-[#000000] border-white ring-1 ring-white/30'
                     : 'bg-[#000000]/60 border-white/10 hover:border-white/25'
                 }`}
               >
@@ -171,7 +171,7 @@ export function HomeTab() {
               onClick={() => setSelectedQuestionType('word_bank_cloze')}
               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3.5 ${
                 selectedQuestionType === 'word_bank_cloze'
-                  ? 'bg-[#000000] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
+                  ? 'bg-[#000000] border-white ring-1 ring-white/30'
                   : 'bg-[#000000]/60 border-white/10 hover:border-white/25'
               }`}
             >
@@ -203,7 +203,7 @@ export function HomeTab() {
               onClick={() => setSelectedQuestionType('letter_hint_cloze')}
               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3.5 ${
                 selectedQuestionType === 'letter_hint_cloze'
-                  ? 'bg-[#000000] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
+                  ? 'bg-[#000000] border-white ring-1 ring-white/30'
                   : 'bg-[#000000]/60 border-white/10 hover:border-white/25'
               }`}
             >
@@ -235,7 +235,7 @@ export function HomeTab() {
               onClick={() => setSelectedQuestionType('multiple_choice_cloze')}
               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3.5 ${
                 selectedQuestionType === 'multiple_choice_cloze'
-                  ? 'bg-[#000000] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
+                  ? 'bg-[#000000] border-white ring-1 ring-white/30'
                   : 'bg-[#000000]/60 border-white/10 hover:border-white/25'
               }`}
             >
@@ -275,7 +275,7 @@ export function HomeTab() {
                 questionCount: selectedQuestionType === 'word_bank_cloze' ? 10 : 5,
               })
             }
-            className="w-full py-4 px-6 rounded-2xl bg-white hover:bg-zinc-200 active:scale-[0.995] text-[#000000] font-bold text-base shadow-lg shadow-[#7CE3B3]/10 flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+            className="w-full py-4 px-6 rounded-2xl bg-white hover:bg-zinc-200 active:scale-[0.995] text-[#000000] font-bold text-base shadow-lg shadow-white/5 flex items-center justify-center gap-2.5 transition-all cursor-pointer"
           >
             <Play className="w-5 h-5 fill-[#000000]" />
             <span>

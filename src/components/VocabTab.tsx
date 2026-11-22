@@ -354,7 +354,7 @@ export function VocabTab() {
         {isWordFormOpen && (
           <form
             onSubmit={handleSaveWord}
-            className="bg-[#000000] border border-[#7CE3B3]/50 rounded-2xl p-5 space-y-4"
+            className="bg-[#000000] border border-white/30 rounded-2xl p-5 space-y-4"
           >
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-white">
@@ -379,7 +379,7 @@ export function VocabTab() {
                   placeholder="例如：mystery 或 nowhere to be found"
                   value={wordTerm}
                   onChange={(e) => setWordTerm(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-white/50"
                 />
               </div>
               <div className="sm:col-span-2">
@@ -387,7 +387,7 @@ export function VocabTab() {
                 <select
                   value={wordPos}
                   onChange={(e) => setWordPos(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
+                  className="w-full px-3 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-white/50"
                 >
                   <option value="n.">n. 名詞</option>
                   <option value="v.">v. 動詞</option>
@@ -407,7 +407,7 @@ export function VocabTab() {
                   placeholder="例如：到處都找不到；不知去向"
                   value={wordDef}
                   onChange={(e) => setWordDef(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-white/50"
                 />
               </div>
             </div>
@@ -658,7 +658,7 @@ export function VocabTab() {
                   value={batchText}
                   onChange={(e) => setBatchText(e.target.value)}
                   placeholder={`meticulous | adj. | 一絲不苟的；極為謹慎的\nmake ends meet | phr. | 使收支相抵；勉強維持生計\nbreakthrough | n. | 重大突破`}
-                  className="w-full p-3.5 rounded-xl bg-[#000000] border border-white/15 text-xs font-mono text-white focus:outline-none focus:border-[#7CE3B3]"
+                  className="w-full p-3.5 rounded-xl bg-[#000000] border border-white/15 text-xs font-mono text-white focus:outline-none focus:border-white/50"
                 />
                 {batchFeedback && (
                   <p className="text-xs text-zinc-300 font-medium">{batchFeedback}</p>
@@ -730,7 +730,7 @@ export function VocabTab() {
                 placeholder="例如：TOEFL 核心高頻單字 & 片語"
                 value={setFormTitle}
                 onChange={(e) => setSetFormTitle(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-white/50"
               />
             </div>
 
@@ -775,7 +775,7 @@ export function VocabTab() {
                       onClick={() => setSetFormIcon(ic.key)}
                       className={`p-3 rounded-xl border flex items-center gap-2.5 text-xs font-medium transition cursor-pointer ${
                         selected
-                          ? 'bg-[#000000] border-[#7CE3B3] text-white'
+                          ? 'bg-[#000000] border-white text-white'
                           : 'bg-[#000000]/60 border-white/10 text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -868,7 +868,7 @@ export function VocabTab() {
               <div
                 key={set.id}
                 onClick={() => setSelectedSetId(set.id)}
-                className="group bg-[#000000] border border-white/10 hover:border-[#7CE3B3]/50 rounded-2xl p-5 transition-all cursor-pointer flex flex-col justify-between"
+                className="group bg-[#000000] border border-white/10 hover:border-white/40 rounded-2xl p-5 transition-all cursor-pointer flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-4">

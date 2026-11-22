@@ -26,7 +26,7 @@ export function Sidebar() {
       <div className="max-w-[850px] mx-auto flex items-center justify-center gap-3 sm:gap-6">
         {/* Brand Logo */}
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#7CE3B3] text-[#000000] flex items-center justify-center font-bold text-base tracking-tight">
+          <div className="w-8 h-8 rounded-xl bg-white text-[#000000] flex items-center justify-center font-bold text-base tracking-tight">
             V
           </div>
           <span className="text-lg font-bold tracking-tight text-white">Vocu</span>
@@ -44,7 +44,7 @@ export function Sidebar() {
                 onClick={() => setActiveTab(item.id)}
                 className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#7CE3B3] text-[#000000] font-semibold shadow-sm'
+                    ? 'bg-white text-[#000000] font-semibold shadow-sm'
                     : 'text-zinc-300 hover:text-white'
                 }`}
               >

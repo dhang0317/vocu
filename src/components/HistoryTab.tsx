@@ -128,7 +128,7 @@ export function HistoryTab() {
           <select
             value={selectedSetFilter}
             onChange={(e) => setSelectedSetFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-xl bg-[#000000] border border-white/10 text-xs text-zinc-200 focus:outline-none focus:border-[#7CE3B3]"
+            className="px-3 py-1.5 rounded-xl bg-[#000000] border border-white/10 text-xs text-zinc-200 focus:outline-none focus:border-white/50"
           >
             <option value="all">所有單字集</option>
             {wordSets.map((s) => (
