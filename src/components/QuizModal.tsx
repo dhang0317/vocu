@@ -680,7 +680,7 @@ export function QuizModal() {
     };
 
     return (
-      <div className="fixed inset-0 z-50 bg-[#000000] overflow-hidden touch-none flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 bg-[#000000] overflow-hidden touch-none pt-10 sm:pt-16 px-4">
         <div className="w-full max-w-[760px] mx-auto space-y-4">
           <div className="flex items-center justify-end gap-2">
             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#F472B6]/20 text-[#F472B6]">
@@ -956,7 +956,7 @@ export function QuizModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#000000] overflow-hidden touch-none flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-[#000000] overflow-hidden touch-none pt-10 sm:pt-16 px-4">
       <div className="w-full max-w-[760px] mx-auto space-y-4">
         {/* Minimal Top Bar (Unified with Multiple Choice) */}
         <div className="flex items-center justify-end gap-2">
