@@ -740,7 +740,7 @@ export function QuizModal() {
                     <span
                       className={`inline-block mx-1.5 px-4 py-0.5 rounded-lg bg-[#000000] border font-mono font-bold ${
                         !isAnswered
-                          ? 'border-white/25 text-[#52B788]'
+                          ? 'border-white/25 text-zinc-200'
                           : isCorrect
                             ? 'border-[#52B788] text-[#52B788]'
                             : 'border-[#F472B6] text-[#F472B6]'
