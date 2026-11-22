@@ -50,17 +50,6 @@ export function Sidebar() {
               >
                 <Icon className="w-4 h-4" />
                 <span>{item.label}</span>
-                {item.id === 'history' && weaknessCount > 0 && (
-                  <span
-                    className={`text-[11px] px-1.5 py-0.2 rounded-full font-semibold ${
-                      isSelected
-                        ? 'bg-[#0D110F]/15 text-[#0D110F]'
-                        : 'bg-[#F472B6]/20 text-[#F472B6]'
-                    }`}
-                  >
-                    {weaknessCount}
-                  </span>
-                )}
               </button>
             );
           })}

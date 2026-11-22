@@ -156,228 +156,40 @@ export function HistoryTab() {
               </option>
             ))}
           </select>
-
-          {viewMode === 'timeline' ? (
-            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[#0D110F] border border-white/10">
-              <button
-                onClick={() => setLogFilter('all')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
-                  logFilter === 'all'
-                    ? 'bg-white/10 text-white'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                全部記錄
-              </button>
-              <button
-                id="filter-wrong-only-btn"
-                onClick={() => setLogFilter('wrong_only')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
-                  logFilter === 'wrong_only'
-                    ? 'bg-[#F472B6]/20 text-[#F472B6] font-semibold'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                只看錯題
-              </button>
-              <button
-                id="filter-high-error-btn"
-                onClick={() => setLogFilter('high_error')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
-                  logFilter === 'high_error'
-                    ? 'bg-[#FBBF24]/20 text-[#FBBF24] font-semibold'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                高錯誤率單字
-              </button>
-            </div>
-          ) : (
-            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[#0D110F] border border-white/10">
-              {(
-                [
-                  { key: 'all', label: '全部狀態' },
-                  { key: 'weakness', label: '弱點優先' },
-                  { key: 'untested', label: '尚未測驗' },
-                  { key: 'cooldown', label: '冷卻中' },
-                  { key: 'due_review', label: '久未複習' },
-                ] as const
-              ).map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setStatusFilter(tab.key)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
-                    statusFilter === tab.key
-                      ? 'bg-[#7CE3B3] text-[#0D110F] font-semibold'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* View 1: 作答歷史時間軸 */}
-      {viewMode === 'timeline' ? (
-        filteredLogs.length === 0 ? (
-          <div className="bg-[#161B18] border border-white/10 rounded-2xl p-12 text-center">
-            <Filter className="w-9 h-9 text-zinc-500 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-white mb-1">沒有符合條件的作答記錄</h3>
-            <p className="text-xs text-zinc-400">
-              可切換上方篩選條件，或立即開始一場練習來累積個人作答歷史。
-            </p>
-          </div>
-        ) : (
-          <div className="relative pl-6 border-l border-white/10 space-y-3 ml-3">
-            {filteredLogs.map((log) => {
-              const word = wordMap.get(log.wordId);
-              const set = setMap.get(log.setId);
-              const analysis = word
-                ? analyzeWordPriority(word, practiceLogs, settings.cooldownThreshold)
-                : null;
-
-              return (
-                <div
-                  key={log.id}
-                  className="relative bg-[#161B18] border border-white/10 hover:border-white/20 rounded-2xl p-4 transition"
-                >
-                  {/* Timeline Dot */}
-                  <div
-                    className={`w-3 h-3 rounded-full absolute -left-[31px] top-6 ring-4 ring-[#0D110F] ${
-                      log.isCorrect ? 'bg-[#7CE3B3]' : 'bg-[#F472B6]'
-                    }`}
-                  />
-
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="space-y-1.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {log.isCorrect ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#7CE3B3]/15 text-[#7CE3B3]">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            答對
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#F472B6]/15 text-[#F472B6]">
-                            <XCircle className="w-3.5 h-3.5" />
-                            答錯
-                          </span>
-                        )}
-
-                        <span className="text-base font-bold text-white">
-                          {word ? word.term : '已刪除單字'}
-                        </span>
-                        {word && (
-                          <span className="text-xs text-zinc-400">
-                            ({word.pos} {word.definition})
-                          </span>
-                        )}
-
-                        {analysis && <WeightStatusBadge status={analysis.status} />}
-                      </div>
-
-                      {/* 作答內容 vs 正確答案對照 */}
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                        <span className="text-zinc-400">
-                          你的作答：{' '}
-                          <code
-                            className={`px-1.5 py-0.5 rounded font-mono ${
-                              log.isCorrect
-                                ? 'bg-[#7CE3B3]/10 text-[#7CE3B3]'
-                                : 'bg-[#F472B6]/15 text-[#F472B6] line-through'
-                            }`}
-                          >
-                            {log.userAnswer || '(未作答)'}
-                          </code>
-                        </span>
-
-                        {!log.isCorrect && word && (
-                          <span className="text-zinc-300">
-                            正確答案：{' '}
-                            <code className="px-1.5 py-0.5 rounded bg-[#7CE3B3]/15 text-[#7CE3B3] font-mono font-semibold">
-                              {word.term}
-                            </code>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Right Meta Info */}
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-1.5 text-xs text-zinc-400 shrink-0">
-                      <div className="flex items-center gap-1.5">
-                        {log.questionType === 'word_bank_cloze' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#0D110F] border border-white/10 text-zinc-300">
-                            <FileText className="w-3 h-3 text-[#7CE3B3]" />
-                            文意選填
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#0D110F] border border-white/10 text-zinc-300">
-                            <Type className="w-3 h-3 text-[#60A5FA]" />
-                            文意字彙
-                          </span>
-                        )}
-                        {set && (
-                          <span
-                            className="px-2 py-0.5 rounded-md text-[11px] font-medium"
-                            style={{
-                              backgroundColor: `${set.color}18`,
-                              color: set.color,
-                            }}
-                          >
-                            {set.title}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-[11px] text-zinc-500">
-                        <Clock className="w-3 h-3" />
-                        <span>{formatRelativeTime(log.answeredAt)}</span>
-                        <span className="font-mono">({log.questionHash})</span>
-                      </div>
-                    </div>
-                  </div>
+      {/* 單字列表一覽（無演算法狀態標籤） */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {filteredAnalyzedWords.map(({ word, set }) => (
+          <div
+            key={word.id}
+            className="bg-[#161B18] border border-white/10 rounded-2xl p-4 flex flex-col justify-between gap-3"
+          >
+            <div>
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-bold text-white">{word.term}</span>
+                  <span className="text-xs font-mono text-zinc-400">{word.pos}</span>
                 </div>
-              );
-            })}
-          </div>
-        )
-      ) : (
-        /* View 2: 單字出題狀態標籤一覽 */
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {filteredAnalyzedWords.map(({ word, analysis, set }) => (
-            <div
-              key={word.id}
-              className="bg-[#161B18] border border-white/10 rounded-2xl p-4 flex flex-col justify-between gap-3"
-            >
-              <div>
-                <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base font-bold text-white">{word.term}</span>
-                    <span className="text-xs font-mono text-zinc-400">{word.pos}</span>
-                  </div>
-                  <WeightStatusBadge status={analysis.status} />
-                </div>
-                <p className="text-xs text-zinc-300">{word.definition}</p>
               </div>
-
-              <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-zinc-400">
-                <span>{analysis.reasonText}</span>
-                {set && (
-                  <span
-                    className="inline-flex items-center gap-1 font-medium"
-                    style={{ color: set.color }}
-                  >
-                    <Layers className="w-3 h-3" />
-                    {set.title}
-                  </span>
-                )}
-              </div>
+              <p className="text-xs text-zinc-300">{word.definition}</p>
             </div>
-          ))}
-        </div>
-      )}
+
+            {set && (
+              <div className="pt-3 border-t border-white/10 flex items-center justify-end text-[11px]">
+                <span
+                  className="inline-flex items-center gap-1 font-medium"
+                  style={{ color: set.color }}
+                >
+                  <Layers className="w-3 h-3" />
+                  {set.title}
+                </span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

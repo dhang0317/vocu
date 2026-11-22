@@ -153,12 +153,6 @@ export function HomeTab() {
                 <h3 className="text-sm font-bold text-white line-clamp-1">{set.title}</h3>
                 <div className="flex items-center gap-2 mt-2 text-xs text-zinc-400">
                   <span>{setWords.length} 個字詞</span>
-                  {setWeakCount > 0 && (
-                    <>
-                      <span>•</span>
-                      <span className="text-[#F472B6] font-medium">{setWeakCount} 弱點</span>
-                    </>
-                  )}
                 </div>
               </button>
             );
