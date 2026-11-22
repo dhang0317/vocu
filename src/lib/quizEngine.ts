@@ -44,6 +44,7 @@ export function formatRelativeTime(isoString: string): string {
 function isCleanSingleSentence(s: string | undefined): boolean {
   const str = String(s || '');
   if (!str.trim()) return false;
+  if (/\[文意選填/.test(str)) return false;
   if (/banked\s+cloze/i.test(str)) return false;
   if (/__\d+__/.test(str)) return false;
   if (/\(1\)\s*______/.test(str)) return false;
