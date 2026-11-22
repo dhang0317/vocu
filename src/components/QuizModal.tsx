@@ -383,30 +383,6 @@ export function QuizModal() {
             </button>
           </div>
 
-          {/* 動態防重複出題演算法摘要條 */}
-          <div className="bg-[#000000] border border-white/10 rounded-2xl px-5 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-2 text-zinc-300">
-              <Sparkles className="w-4 h-4 text-[#52B788] shrink-0" />
-              <span>
-                本次出題權重組成：
-                <strong className="text-[#F472B6] ml-1">
-                  {selectionSummary.weaknessCount} 弱點優先
-                </strong>{' '}
-                •{' '}
-                <strong className="text-[#52B788]">
-                  {selectionSummary.newCount} 未測驗新字
-                </strong>{' '}
-                •{' '}
-                <strong className="text-[#FBBF24]">
-                  {selectionSummary.reviewCount} 待複習
-                </strong>
-              </span>
-            </div>
-            <span className="text-zinc-400">
-              已排除 {selectionSummary.skippedCooldownCount} 個冷卻期單字與已做過題幹
-            </span>
-          </div>
-
           {/* 互動短文區 */}
           <div className="bg-[#000000] border border-white/10 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between text-xs text-zinc-400">
