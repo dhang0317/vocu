@@ -377,7 +377,7 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
               return {
                 letter: wbLetters[idx],
                 wordId: `wb-${idx}`,
-                term: opt.replace(/^\(?[A-J]\)?[\.\s]*/i, '').trim(),
+                term: opt.replace(/^(?:\([A-J]\)\s*|[A-J][\.\)\:]\s*|[A-J]\s+)/i, '').trim(),
                 pos: '',
                 definition: '',
               };
