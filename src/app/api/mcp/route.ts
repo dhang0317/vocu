@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
               {
                 name: 'push_quiz_items',
                 description:
-                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（單次最多 25 題）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title、passage 含 (1) ______ ~ (10) ______、options 長度必須剛好為 10、answers 長度必須剛好為 10）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}、options 長度必須剛好為 4、correctLabel、targetTerm，僅限單字不可為片語）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}、targetTerm、pos、chineseHint，僅限單字不可為片語）。',
+                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（單次最多 100 題）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title、passage 含 (1) ______ ~ (10) ______、options 長度必須剛好為 10、answers 長度必須剛好為 10）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}、options 長度必須剛好為 4、correctLabel、targetTerm，僅限單字不可為片語）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}、targetTerm、pos、chineseHint，僅限單字不可為片語）。',
                 inputSchema: {
                   type: 'object',
                   properties: {
@@ -451,14 +451,14 @@ export async function POST(req: NextRequest) {
             { headers: CORS_HEADERS }
           );
         }
-        if (incoming.length > 25) {
+        if (incoming.length > 100) {
           return NextResponse.json(
             {
               jsonrpc: '2.0',
               id,
               error: {
                 code: -32602,
-                message: `Pre-save validation failed: 單次最多推送 25 題（目前 ${incoming.length} 題），請分批寫入以確保欄位完整。`,
+                message: `Pre-save validation failed: 單次最多推送 100 題（目前 ${incoming.length} 題），請分批寫入以確保欄位完整。`,
               },
             },
             { headers: CORS_HEADERS }
