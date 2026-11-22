@@ -324,6 +324,25 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    // 若本地 24 小時內已快取子集合題庫，直接使用快取，省下每次重整下載 1,200+ 筆 Firestore 文件的流量
+    const CACHE_KEY = 'vocu_sub_quizzes_cache_v1';
+    const CACHE_TS_KEY = 'vocu_sub_quizzes_ts_v1';
+    try {
+      const ts = Number(localStorage.getItem(CACHE_TS_KEY) || '0');
+      const cachedRaw = localStorage.getItem(CACHE_KEY);
+      if (cachedRaw && Date.now() - ts < 1000 * 60 * 60 * 24) {
+        const parsed = JSON.parse(cachedRaw) as QuizItem[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setQuizBank((prev) => {
+            const map = new Map(prev.map((q) => [q.id, q]));
+            parsed.forEach((item) => map.set(item.id, item));
+            return Array.from(map.values());
+          });
+          return;
+        }
+      }
+    } catch {}
+
     loadMcpQuizzesFromSubcollection().then((subItems) => {
       if (!active || subItems.length === 0) return;
       isRemoteUpdateRef.current = true;
@@ -439,6 +458,10 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
           questionHash,
         } as QuizItem;
       });
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(normalizedSub));
+        localStorage.setItem(CACHE_TS_KEY, String(Date.now()));
+      } catch {}
       setQuizBank((prev) => {
         const map = new Map(prev.map((q) => [q.id, q]));
         normalizedSub.forEach((item) => map.set(item.id, item));
@@ -469,7 +492,7 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
         settings,
         updatedAt: new Date().toISOString(),
       });
-    }, 4000);
+    }, 15000);
     return () => clearTimeout(timer);
   }, [wordSets, words, practiceLogs, settings]);
 
