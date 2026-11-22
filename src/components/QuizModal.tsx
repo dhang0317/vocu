@@ -680,8 +680,8 @@ export function QuizModal() {
     };
 
     return (
-      <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md overflow-y-auto">
-        <div className="max-w-[850px] mx-auto px-4 py-6 sm:py-10 space-y-6">
+      <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md overflow-hidden touch-none flex items-center justify-center p-4">
+        <div className="w-full max-w-[760px] mx-auto space-y-4">
           <div className="flex items-center justify-end gap-2">
             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#F472B6]/20 text-[#F472B6]">
               ✗ {wrongMcCount}
