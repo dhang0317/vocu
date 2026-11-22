@@ -290,10 +290,26 @@ export async function POST(req: NextRequest) {
           ? workspace.words.filter((w) => w.setId === args.setId)
           : workspace.words;
 
+        const quizUsageMap = new Map<string, number>();
+        for (const q of workspace.quizBank) {
+          if (q.type === 'word_bank_cloze') {
+            for (const ans of q.answers ?? []) {
+              const key = String(ans.term || '').trim().toLowerCase();
+              if (key) quizUsageMap.set(key, (quizUsageMap.get(key) ?? 0) + 1);
+            }
+          } else if ('targetTerm' in q && q.targetTerm) {
+            const key = String(q.targetTerm).trim().toLowerCase();
+            if (key) quizUsageMap.set(key, (quizUsageMap.get(key) ?? 0) + 1);
+          }
+        }
+
         const cooldownThreshold = workspace.settings?.cooldownThreshold ?? 15;
         const analyzed = targetWords
-          .map((w) => analyzeWordPriority(w, workspace.practiceLogs, cooldownThreshold))
-          .sort((a, b) => a.priorityTier - b.priorityTier)
+          .map((w) => ({
+            ...analyzeWordPriority(w, workspace.practiceLogs, cooldownThreshold),
+            quizUsageCount: quizUsageMap.get(w.term.trim().toLowerCase()) ?? 0,
+          }))
+          .sort((a, b) => a.quizUsageCount - b.quizUsageCount || a.priorityTier - b.priorityTier)
           .slice(0, limit);
 
         return NextResponse.json(
