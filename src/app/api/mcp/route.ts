@@ -229,7 +229,7 @@ export async function POST(req: NextRequest) {
                 inputSchema: {
                   type: 'object',
                   properties: {
-                    limit: { type: 'number', description: '回傳筆數上限，預設 200' },
+                    limit: { type: 'number', description: '選填：回傳筆數上限，預設不限（一次取回全部）' },
                   },
                 },
               },
@@ -891,7 +891,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (toolName === 'get_archived_quizzes') {
-        const limit = typeof args.limit === 'number' ? args.limit : 200;
+        const limit = typeof args.limit === 'number' && args.limit > 0 ? Math.floor(args.limit) : Infinity;
         const archivedHashes = new Set(
           Object.entries(workspace.settings?.questionRatings || {})
             .filter(([, score]) => score >= 4)
@@ -900,18 +900,19 @@ export async function POST(req: NextRequest) {
         const subQuizzes = await loadMcpQuizzesFromSubcollection();
         const mergedMap = new Map<string, QuizItem>();
         [...workspace.quizBank, ...subQuizzes].forEach((q) => mergedMap.set(q.id, q));
-        const archivedItems = Array.from(mergedMap.values())
-          .filter((q) => archivedHashes.has(q.questionHash))
-          .slice(0, limit)
-          .map((q) => ({
-            id: q.id,
-            setId: q.setId,
-            type: q.type,
-            questionHash: q.questionHash,
-            targetTerm: q.type === 'word_bank_cloze' ? q.title : q.targetTerm,
-            sentenceOrPassage:
-              q.type === 'word_bank_cloze' ? q.passage : q.sentence || '',
-          }));
+        const filtered = Array.from(mergedMap.values()).filter((q) =>
+          archivedHashes.has(q.questionHash)
+        );
+        const sliced = Number.isFinite(limit) ? filtered.slice(0, limit) : filtered;
+        const archivedItems = sliced.map((q) => ({
+          id: q.id,
+          setId: q.setId,
+          type: q.type,
+          questionHash: q.questionHash,
+          targetTerm: q.type === 'word_bank_cloze' ? q.title : q.targetTerm,
+          sentenceOrPassage:
+            q.type === 'word_bank_cloze' ? q.passage : q.sentence || '',
+        }));
 
         return NextResponse.json(
           {
@@ -921,15 +922,11 @@ export async function POST(req: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(
-                    {
-                      archivedTotal: archivedHashes.size,
-                      returnedCount: archivedItems.length,
-                      items: archivedItems,
-                    },
-                    null,
-                    2
-                  ),
+                  text: JSON.stringify({
+                    archivedTotal: archivedHashes.size,
+                    returnedCount: archivedItems.length,
+                    items: archivedItems,
+                  }),
                 },
               ],
             },
