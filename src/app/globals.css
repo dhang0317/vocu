@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0D110F;
+  --background: #000000;
   --foreground: #F4F6F5;
-  --card-bg: #161B18;
+  --card-bg: #121212;
   --accent-mint: #7CE3B3;
 }
 
@@ -15,7 +15,7 @@
 }
 
 body {
-  background-color: #0D110F;
+  background-color: #000000;
   color: #F4F6F5;
   font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;

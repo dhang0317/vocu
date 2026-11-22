@@ -156,7 +156,7 @@ export function QuizModal() {
 
     if (!quiz) {
       return (
-        <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#000000] flex items-center justify-center p-4">
           <div className="max-w-md w-full bg-[#161B18] border border-white/10 rounded-2xl p-8 text-center space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-[#FBBF24]/15 text-[#FBBF24] flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
@@ -353,7 +353,7 @@ export function QuizModal() {
       : 0;
 
     return (
-      <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md overflow-y-auto">
+      <div className="fixed inset-0 z-50 bg-[#000000] overflow-y-auto">
         <div className="max-w-[850px] mx-auto px-4 py-6 sm:py-10 space-y-6">
           {/* Top Bar */}
           <div className="flex items-center justify-between gap-4 bg-[#161B18] border border-white/10 rounded-2xl px-5 py-4">
@@ -680,7 +680,7 @@ export function QuizModal() {
     };
 
     return (
-      <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md overflow-hidden touch-none flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 bg-[#000000] overflow-hidden touch-none flex items-center justify-center p-4">
         <div className="w-full max-w-[760px] mx-auto space-y-4">
           <div className="flex items-center justify-end gap-2">
             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#F472B6]/20 text-[#F472B6]">
@@ -762,11 +762,11 @@ export function QuizModal() {
                         'bg-[#0D110F] border-white/10 text-zinc-200 hover:border-[#7CE3B3]/60 hover:bg-white/[0.03]';
                       if (isAnswered) {
                         if (isCorrectOpt) {
-                          optStyle = 'bg-[#7CE3B3]/20 border-[#7CE3B3] text-[#7CE3B3] font-semibold';
+                          optStyle = 'bg-[#7CE3B3] border-[#7CE3B3] text-[#000000] font-bold';
                         } else if (isSelected && !isCorrectOpt) {
-                          optStyle = 'bg-[#F472B6]/20 border-[#F472B6] text-[#F472B6]';
+                          optStyle = 'bg-[#EF4444] border-[#EF4444] text-white font-bold';
                         } else {
-                          optStyle = 'bg-[#0D110F]/60 border-white/5 text-zinc-500';
+                          optStyle = 'bg-[#000000] border-white/10 text-zinc-500';
                         }
                       }
 
@@ -885,7 +885,7 @@ export function QuizModal() {
     const lhCount = setQuizzes.filter((q) => q.type === 'letter_hint_cloze').length;
 
     return (
-      <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 bg-[#000000] flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-[#161B18] border border-white/10 rounded-2xl p-8 text-center space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-[#FBBF24]/15 text-[#FBBF24] flex items-center justify-center mx-auto">
             <AlertTriangle className="w-6 h-6" />
@@ -956,7 +956,7 @@ export function QuizModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0D110F]/95 backdrop-blur-md overflow-hidden touch-none flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-[#000000] overflow-hidden touch-none flex items-center justify-center p-4">
       <div className="w-full max-w-[760px] mx-auto space-y-4">
         {/* Minimal Top Bar (Unified with Multiple Choice) */}
         <div className="flex items-center justify-end gap-2">

@@ -13,7 +13,7 @@ function VocuShell() {
   const { activeTab } = useVocu();
 
   return (
-    <div className="min-h-screen bg-[#0D110F] text-zinc-100 flex flex-col">
+    <div className="min-h-screen bg-[#000000] text-zinc-100 flex flex-col">
       {/* Top Centered Navigation Bar */}
       <Sidebar />
 
@@ -45,10 +45,10 @@ class VocuErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#0D110F] text-zinc-100 flex items-center justify-center p-6">
+        <div className="min-h-screen bg-[#000000] text-zinc-100 flex items-center justify-center p-6">
           <div className="max-w-md w-full bg-[#161B18] border border-[#F472B6]/40 rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-bold text-[#F472B6]">畫面發生錯誤</h2>
-            <p className="text-xs font-mono text-zinc-300 break-all bg-[#0D110F] p-3 rounded-xl border border-white/10">
+            <p className="text-xs font-mono text-zinc-300 break-all bg-[#000000] p-3 rounded-xl border border-white/10">
               {this.state.message}
             </p>
             <button
@@ -74,7 +74,7 @@ export function VocuApp() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-[#0D110F] flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-[#7CE3B3] border-t-transparent animate-spin" />
       </div>
     );
