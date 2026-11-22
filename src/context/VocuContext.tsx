@@ -86,6 +86,7 @@ interface VocuContextType {
   exportBackupJson: () => string;
   importBackupJson: (jsonStr: string) => { success: boolean; message: string };
   resetToDemoData: () => void;
+  isCloudReady: boolean;
 }
 
 const STORAGE_KEYS = {
@@ -110,6 +111,8 @@ function readStorage<T>(key: string, fallback: T): T {
 }
 
 export function VocuProvider({ children }: { children: React.ReactNode }) {
+  const [workspaceReady, setWorkspaceReady] = useState(false);
+  const [quizzesReady, setQuizzesReady] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('home');
 
   const [wordSets, setWordSets] = useState<WordSet[]>(() =>
@@ -156,7 +159,9 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    loadWorkspaceFromFirestore().then((remote) => {
+    const p1 = loadWorkspaceFromFirestore();
+    p1.finally(() => setWorkspaceReady(true));
+    p1.then((remote) => {
       if (!active || !remote) return;
       isRemoteUpdateRef.current = true;
       if (Array.isArray(remote.wordSets)) setWordSets(remote.wordSets);
@@ -343,7 +348,9 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {}
 
-    loadMcpQuizzesFromSubcollection().then((subItems) => {
+    const p2 = loadMcpQuizzesFromSubcollection();
+    p2.finally(() => setQuizzesReady(true));
+    p2.then((subItems) => {
       if (!active || subItems.length === 0) return;
       isRemoteUpdateRef.current = true;
       const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
@@ -775,6 +782,7 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
         exportBackupJson,
         importBackupJson,
         resetToDemoData,
+        isCloudReady: workspaceReady && quizzesReady,
       }}
     >
       {children}
