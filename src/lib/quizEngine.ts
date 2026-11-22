@@ -209,8 +209,20 @@ export function buildLetterHintQuizSession(params: {
   let newCount = 0;
   let reviewCount = 0;
 
+  const isCleanSingleSentence = (s: string | undefined) => {
+    const str = String(s || '');
+    if (!str.trim()) return false;
+    if (/banked\s+cloze/i.test(str)) return false;
+    if (/__\d+__/.test(str)) return false;
+    if (/\(1\)\s*______/.test(str)) return false;
+    return true;
+  };
+
   const existingLetterQuizzes = quizBank.filter(
-    (q): q is LetterHintClozeQuiz => q.type === 'letter_hint_cloze'
+    (q): q is LetterHintClozeQuiz =>
+      q.type === 'letter_hint_cloze' &&
+      (setId === 'all' || q.setId === setId) &&
+      isCleanSingleSentence(q.sentence)
   );
 
   for (const item of ranked) {
@@ -451,8 +463,20 @@ export function buildMultipleChoiceQuizSession(params: {
     includeCooldownIfInsufficient: true,
   });
 
+  const isCleanSingleSentence = (s: string | undefined) => {
+    const str = String(s || '');
+    if (!str.trim()) return false;
+    if (/banked\s+cloze/i.test(str)) return false;
+    if (/__\d+__/.test(str)) return false;
+    if (/\(1\)\s*______/.test(str)) return false;
+    return true;
+  };
+
   const existingMcQuizzes = quizBank.filter(
-    (q): q is MultipleChoiceClozeQuiz => q.type === 'multiple_choice_cloze'
+    (q): q is MultipleChoiceClozeQuiz =>
+      q.type === 'multiple_choice_cloze' &&
+      (setId === 'all' || q.setId === setId) &&
+      isCleanSingleSentence(q.sentence)
   );
 
   const usedWordIds = new Set<string>();
