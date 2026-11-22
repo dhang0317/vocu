@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
                   properties: {
                     setId: { type: 'string', description: '選填：指定單字集 ID' },
                     offset: { type: 'number', description: '選填：單字列表分頁起始位置，預設 0' },
-                    limit: { type: 'number', description: '選填：單字列表每頁筆數，預設 1000，最大 2000' },
+                    limit: { type: 'number', description: '選填：單字列表每頁筆數，預設不限（一次取回全部）' },
                   },
                 },
               },
@@ -267,9 +267,8 @@ export async function POST(req: NextRequest) {
 
         const rawOffset = typeof args.offset === 'number' ? Math.floor(args.offset) : 0;
         const offset = Math.max(0, rawOffset);
-        const rawLimit = typeof args.limit === 'number' ? Math.floor(args.limit) : 1000;
-        const limit = Math.min(2000, Math.max(1, rawLimit));
-        const pagedWords = allWords.slice(offset, offset + limit);
+        const limit = typeof args.limit === 'number' && args.limit > 0 ? Math.floor(args.limit) : Infinity;
+        const pagedWords = Number.isFinite(limit) ? allWords.slice(offset, offset + limit) : allWords.slice(offset);
         const hasMore = offset + pagedWords.length < allWords.length;
         const nextOffset = hasMore ? offset + pagedWords.length : null;
 
@@ -769,7 +768,7 @@ export async function POST(req: NextRequest) {
 
       if (toolName === 'get_quiz_items') {
         const offset = typeof args.offset === 'number' && args.offset >= 0 ? args.offset : 0;
-        const limit = typeof args.limit === 'number' && args.limit > 0 ? Math.min(args.limit, 200) : 100;
+        const limit = typeof args.limit === 'number' && args.limit > 0 ? Math.floor(args.limit) : Infinity;
         const subQuizzes = await loadMcpQuizzesFromSubcollection();
         const mergedMap = new Map<string, QuizItem>();
         [...workspace.quizBank, ...subQuizzes].forEach((q) => mergedMap.set(q.id, q));
