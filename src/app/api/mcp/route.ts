@@ -348,7 +348,7 @@ export async function POST(req: NextRequest) {
               const raw = opt as unknown;
               let t = '';
               if (typeof raw === 'string') {
-                t = raw.replace(/^\(?[A-J]\)?[\.\s]*/i, '').trim();
+                t = raw.replace(/^(?:\([A-J]\)\s*|[A-J][\.\)\:]\s*|[A-J]\s+)/i, '').trim();
               } else if (raw && typeof raw === 'object') {
                 const obj = raw as Record<string, unknown>;
                 t = String(obj.term || obj.word || obj.text || obj.value || '').trim();
@@ -359,7 +359,7 @@ export async function POST(req: NextRequest) {
               const raw = ans as unknown;
               let t = '';
               if (typeof raw === 'string') {
-                t = raw.replace(/^\(?[A-J]\)?[\.\s]*/i, '').trim();
+                t = raw.replace(/^(?:\([A-J]\)\s*|[A-J][\.\)\:]\s*|[A-J]\s+)/i, '').trim();
               } else if (raw && typeof raw === 'object') {
                 const obj = raw as Record<string, unknown>;
                 t = String(obj.term || obj.word || obj.answer || obj.text || obj.value || '').trim();
@@ -500,7 +500,7 @@ export async function POST(req: NextRequest) {
               item.options
                 .map((o) => {
                   const raw = o as unknown;
-                  if (typeof raw === 'string') return raw.replace(/^\(?[A-J]\)?[\.\s]*/i, '').trim().toLowerCase();
+                  if (typeof raw === 'string') return raw.replace(/^(?:\([A-J]\)\s*|[A-J][\.\)\:]\s*|[A-J]\s+)/i, '').trim().toLowerCase();
                   const obj = (raw || {}) as Record<string, unknown>;
                   return String(obj.term || obj.word || obj.text || obj.value || '').trim().toLowerCase();
                 })
