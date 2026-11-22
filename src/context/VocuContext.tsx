@@ -400,14 +400,56 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
           const rawAns = Array.isArray(raw.answers) ? raw.answers : [];
           const normalizedWbAnswers = rawAns.map((ans, idx) => {
             const obj = (ans || {}) as Record<string, unknown>;
+            const blankNumber = Number(obj.blankNumber || obj.blank_index || idx + 1);
+            let rawTerm = String(obj.term || obj.word || obj.text || '')
+              .replace(/^(?:\([A-J]\)\s*|[A-J][\.\)\:]\s*|[A-J]\s+)/i, '')
+              .trim();
+            let rawLetter = String(obj.optionLetter || obj.letter || obj.answer || '')
+              .replace(/[()]/g, '')
+              .toUpperCase()
+              .slice(0, 1);
+
+            const explanationStr = String(obj.explanation || '');
+            // Reconcile optionLetter & term against normalizedWbOptions so shuffled options never desync answer keys
+            const matchedOptByTerm = rawTerm
+              ? normalizedWbOptions.find(
+                  (o) => o.term.toLowerCase() === rawTerm.toLowerCase()
+                )
+              : undefined;
+            const matchedOptByBlank = normalizedWbOptions.find(
+              (o) => o.correctBlankIndex === blankNumber
+            );
+            // If rawTerm wasn't provided, check if explanation starts with or explicitly mentions one of the option terms
+            const matchedOptByExplanation =
+              !matchedOptByTerm && !matchedOptByBlank && explanationStr
+                ? [...normalizedWbOptions]
+                    .sort((a, b) => b.term.length - a.term.length)
+                    .find((o) =>
+                      new RegExp(`^[^a-zA-Z]*\\b${o.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(
+                        explanationStr
+                      )
+                    )
+                : undefined;
+            const matchedOptByLetter = rawLetter
+              ? normalizedWbOptions.find((o) => o.letter === rawLetter)
+              : undefined;
+
+            const canonicalOpt =
+              matchedOptByTerm ||
+              matchedOptByBlank ||
+              matchedOptByExplanation ||
+              matchedOptByLetter;
+
+            if (canonicalOpt) {
+              rawLetter = canonicalOpt.letter;
+              rawTerm = canonicalOpt.term;
+            }
+
             return {
-              blankNumber: Number(obj.blankNumber || obj.blank_index || idx + 1),
-              optionLetter: String(obj.optionLetter || obj.letter || obj.answer || '')
-                .replace(/[()]/g, '')
-                .toUpperCase()
-                .slice(0, 1),
-              wordId: String(obj.wordId || obj.word_id || `wb-${idx}`),
-              term: String(obj.term || obj.word || obj.text || '').trim(),
+              blankNumber,
+              optionLetter: rawLetter,
+              wordId: String(obj.wordId || obj.word_id || canonicalOpt?.wordId || `wb-${idx}`),
+              term: rawTerm,
               explanation: String(obj.explanation || ''),
             };
           });

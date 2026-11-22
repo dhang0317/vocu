@@ -546,6 +546,42 @@ export async function POST(req: NextRequest) {
                 }
               }
             }
+            // Validate and auto-verify that answers[j].optionLetter matches answers[j].term in options
+            const wbLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+            const optMapByLetter = new Map<string, string>();
+            item.options.slice(0, 10).forEach((o, idx) => {
+              const raw = o as unknown;
+              let letter = wbLetters[idx];
+              let term = '';
+              if (typeof raw === 'string') {
+                term = raw.replace(/^(?:\([A-J]\)\s*|[A-J][\.\)\:]\s*|[A-J]\s+)/i, '').trim().toLowerCase();
+              } else if (raw && typeof raw === 'object') {
+                const obj = raw as Record<string, unknown>;
+                letter = String(obj.letter || obj.label || wbLetters[idx]).replace(/[()]/g, '').toUpperCase().slice(0, 1);
+                term = String(obj.term || obj.word || obj.text || obj.value || '').trim().toLowerCase();
+              }
+              if (letter && term) optMapByLetter.set(letter, term);
+            });
+            for (const ans of item.answers) {
+              const aObj = (ans || {}) as unknown as Record<string, unknown>;
+              const bNum = Number(aObj.blankNumber || aObj.blank_index || 0);
+              const aLetter = String(aObj.optionLetter || aObj.letter || aObj.answer || '').replace(/[()]/g, '').toUpperCase().slice(0, 1);
+              const aTerm = String(aObj.term || aObj.word || aObj.text || '').replace(/^(?:\([A-J]\)\s*|[A-J][\.\)\:]\s*|[A-J]\s+)/i, '').trim().toLowerCase();
+              const optTermForLetter = optMapByLetter.get(aLetter);
+              if (aTerm && optTermForLetter && aTerm !== optTermForLetter) {
+                return NextResponse.json(
+                  {
+                    jsonrpc: '2.0',
+                    id,
+                    error: {
+                      code: -32602,
+                      message: `Pre-save validation failed (第 ${i + 1} 題 第 ${bNum} 格): answers 中的 optionLetter (${aLetter}) 對應到 options 的 "${optTermForLetter}"，但 answers.term 卻是 "${aTerm}"（選項洗牌後未同步更新答案代號）。請確保 optionLetter 與 options 完全一致。`,
+                    },
+                  },
+                  { headers: CORS_HEADERS }
+                );
+              }
+            }
           } else {
             // 單句題型 (letter_hint_cloze / multiple_choice_cloze) 嚴格校驗
             const term = String(item.targetTerm || '').trim();

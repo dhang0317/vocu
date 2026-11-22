@@ -244,12 +244,7 @@ export function QuizModal() {
       const entries = quiz.answers.map((ans) => {
         const chosenLetter = wordBankSelections[ans.blankNumber] || '';
         const chosenOpt = optionByLetter.get(chosenLetter);
-        const isCorrect = Boolean(
-          chosenOpt &&
-            (chosenOpt.correctBlankIndex === ans.blankNumber ||
-              chosenOpt.wordId === ans.wordId ||
-              chosenLetter === ans.optionLetter)
-        );
+        const isCorrect = Boolean(chosenLetter && chosenLetter === ans.optionLetter);
         return {
           wordId: ans.wordId,
           setId: quiz.setId,
