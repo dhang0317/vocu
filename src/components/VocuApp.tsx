@@ -46,14 +46,14 @@ class VocuErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-[#000000] text-zinc-100 flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-[#161B18] border border-[#F472B6]/40 rounded-2xl p-6 space-y-4">
+          <div className="max-w-md w-full bg-[#000000] border border-[#F472B6]/40 rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-bold text-[#F472B6]">畫面發生錯誤</h2>
             <p className="text-xs font-mono text-zinc-300 break-all bg-[#000000] p-3 rounded-xl border border-white/10">
               {this.state.message}
             </p>
             <button
               onClick={() => this.setState({ hasError: false, message: '' })}
-              className="w-full py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold cursor-pointer"
             >
               重新嘗試
             </button>

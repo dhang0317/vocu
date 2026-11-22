@@ -232,7 +232,7 @@ export function VocabTab() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => openEditSetModal(selectedSet)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#161B18] hover:bg-white/10 border border-white/10 text-xs text-zinc-300 transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#000000] hover:bg-white/10 border border-white/10 text-xs text-zinc-300 transition cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
               <span>編輯單字集</span>
@@ -242,7 +242,7 @@ export function VocabTab() {
                 deleteWordSet(selectedSet.id);
                 setSelectedSetId(null);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#161B18] hover:bg-[#F472B6]/15 border border-white/10 hover:border-[#F472B6]/40 text-xs text-zinc-400 hover:text-[#F472B6] transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#000000] hover:bg-[#F472B6]/15 border border-white/10 hover:border-[#F472B6]/40 text-xs text-zinc-400 hover:text-[#F472B6] transition cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>刪除</span>
@@ -251,7 +251,7 @@ export function VocabTab() {
         </div>
 
         {/* Set Header Card */}
-        <div className="bg-[#161B18] border border-white/10 rounded-2xl p-6">
+        <div className="bg-[#000000] border border-white/10 rounded-2xl p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div
@@ -281,7 +281,7 @@ export function VocabTab() {
                     questionType: 'word_bank_cloze',
                   })
                 }
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D110F] hover:bg-white/5 border border-white/15 text-xs font-semibold text-white transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#000000] hover:bg-white/5 border border-white/15 text-xs font-semibold text-white transition cursor-pointer"
               >
                 <FileText className="w-3.5 h-3.5 text-[#7CE3B3]" />
                 <span>測驗文意選填</span>
@@ -293,9 +293,9 @@ export function VocabTab() {
                     questionType: 'letter_hint_cloze',
                   })
                 }
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] text-xs font-bold transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#000000] text-xs font-bold transition cursor-pointer"
               >
-                <Play className="w-3.5 h-3.5 fill-[#0D110F]" />
+                <Play className="w-3.5 h-3.5 fill-[#000000]" />
                 <span>測驗文意字彙</span>
               </button>
             </div>
@@ -303,12 +303,12 @@ export function VocabTab() {
 
           {/* Sub-navigation & Actions */}
           <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t border-white/10">
-            <div className="inline-flex p-1 rounded-xl bg-[#0D110F] border border-white/10">
+            <div className="inline-flex p-1 rounded-xl bg-[#000000] border border-white/10">
               <button
                 onClick={() => setDetailSubTab('words')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                   detailSubTab === 'words'
-                    ? 'bg-[#7CE3B3] text-[#0D110F]'
+                    ? 'bg-[#7CE3B3] text-[#000000]'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
@@ -318,7 +318,7 @@ export function VocabTab() {
                 onClick={() => setDetailSubTab('quizzes')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                   detailSubTab === 'quizzes'
-                    ? 'bg-[#7CE3B3] text-[#0D110F]'
+                    ? 'bg-[#7CE3B3] text-[#000000]'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
@@ -333,14 +333,14 @@ export function VocabTab() {
                     setBatchFeedback(null);
                     setIsBatchModalOpen(true);
                   }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0D110F] hover:bg-white/5 border border-white/10 text-xs font-medium text-zinc-200 transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#000000] hover:bg-white/5 border border-white/10 text-xs font-medium text-zinc-200 transition cursor-pointer"
                 >
                   <Upload className="w-3.5 h-3.5 text-[#7CE3B3]" />
                   <span>批次匯入</span>
                 </button>
                 <button
                   onClick={openCreateWordForm}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] text-xs font-bold transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#000000] text-xs font-bold transition cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>新增單字 / 片語</span>
@@ -354,7 +354,7 @@ export function VocabTab() {
         {isWordFormOpen && (
           <form
             onSubmit={handleSaveWord}
-            className="bg-[#161B18] border border-[#7CE3B3]/50 rounded-2xl p-5 space-y-4"
+            className="bg-[#000000] border border-[#7CE3B3]/50 rounded-2xl p-5 space-y-4"
           >
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-white">
@@ -379,7 +379,7 @@ export function VocabTab() {
                   placeholder="例如：mystery 或 nowhere to be found"
                   value={wordTerm}
                   onChange={(e) => setWordTerm(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0D110F] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
                 />
               </div>
               <div className="sm:col-span-2">
@@ -387,7 +387,7 @@ export function VocabTab() {
                 <select
                   value={wordPos}
                   onChange={(e) => setWordPos(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-[#0D110F] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
+                  className="w-full px-3 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
                 >
                   <option value="n.">n. 名詞</option>
                   <option value="v.">v. 動詞</option>
@@ -407,14 +407,14 @@ export function VocabTab() {
                   placeholder="例如：到處都找不到；不知去向"
                   value={wordDef}
                   onChange={(e) => setWordDef(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0D110F] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
                 />
               </div>
             </div>
             {wordTerm.trim() && (
               <div className="text-xs text-zinc-400 flex items-center gap-2">
                 <span>文意字彙自動首尾字母遮罩預覽：</span>
-                <code className="px-2 py-0.5 rounded bg-[#0D110F] text-[#7CE3B3] font-mono">
+                <code className="px-2 py-0.5 rounded bg-[#000000] text-[#7CE3B3] font-mono">
                   {generateLetterHintMask(wordTerm)}
                 </code>
               </div>
@@ -423,13 +423,13 @@ export function VocabTab() {
               <button
                 type="button"
                 onClick={() => setIsWordFormOpen(false)}
-                className="px-4 py-2 rounded-xl bg-[#0D110F] text-xs text-zinc-300 hover:bg-white/5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#000000] text-xs text-zinc-300 hover:bg-white/5 cursor-pointer"
               >
                 取消
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold hover:brightness-105 cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold hover:brightness-105 cursor-pointer"
               >
                 儲存字詞
               </button>
@@ -440,7 +440,7 @@ export function VocabTab() {
         {/* Sub-tab 1: 單字與片語列表 */}
         {detailSubTab === 'words' ? (
           setWords.length === 0 ? (
-            <div className="bg-[#161B18] border border-white/10 rounded-2xl p-10 text-center">
+            <div className="bg-[#000000] border border-white/10 rounded-2xl p-10 text-center">
               <BookOpen className="w-10 h-10 text-zinc-500 mx-auto mb-3" />
               <h3 className="text-base font-bold text-white mb-1">此單字集尚無單字</h3>
               <p className="text-xs text-zinc-400 mb-5">
@@ -448,7 +448,7 @@ export function VocabTab() {
               </p>
               <button
                 onClick={openCreateWordForm}
-                className="px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold cursor-pointer"
               >
                 + 新增第一個單字
               </button>
@@ -464,12 +464,12 @@ export function VocabTab() {
                 return (
                   <div
                     key={word.id}
-                    className="bg-[#161B18] border border-white/10 hover:border-white/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition"
+                    className="bg-[#000000] border border-white/10 hover:border-white/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition"
                   >
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2.5">
                         <span className="text-base font-bold text-white">{word.term}</span>
-                        <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-[#0D110F] text-zinc-400 border border-white/5">
+                        <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-[#000000] text-zinc-400 border border-white/5">
                           {word.pos}
                         </span>
                         <WeightStatusBadge status={priority.status} />
@@ -484,14 +484,14 @@ export function VocabTab() {
                     <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
                       <button
                         onClick={() => openEditWordForm(word)}
-                        className="p-2 rounded-xl bg-[#0D110F] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 transition cursor-pointer"
+                        className="p-2 rounded-xl bg-[#000000] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5 transition cursor-pointer"
                         title="編輯單字"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => deleteWord(word.id)}
-                        className="p-2 rounded-xl bg-[#0D110F] hover:bg-[#F472B6]/15 text-zinc-400 hover:text-[#F472B6] border border-white/5 transition cursor-pointer"
+                        className="p-2 rounded-xl bg-[#000000] hover:bg-[#F472B6]/15 text-zinc-400 hover:text-[#F472B6] border border-white/5 transition cursor-pointer"
                         title="刪除單字"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -503,7 +503,7 @@ export function VocabTab() {
               {setWords.length > visibleWordCount && (
                 <button
                   onClick={() => setVisibleWordCount((c) => c + 30)}
-                  className="w-full py-3 rounded-2xl bg-[#161B18] hover:bg-white/5 border border-white/10 text-xs font-semibold text-[#7CE3B3] transition cursor-pointer"
+                  className="w-full py-3 rounded-2xl bg-[#000000] hover:bg-white/5 border border-white/10 text-xs font-semibold text-[#7CE3B3] transition cursor-pointer"
                 >
                   顯示更多單字（目前顯示 {visibleWordCount} / 共 {setWords.length} 個）
                 </button>
@@ -514,7 +514,7 @@ export function VocabTab() {
           /* Sub-tab 2: 查看已生成的題目 */
           <div className="space-y-4">
             {setQuizzes.length === 0 ? (
-              <div className="bg-[#161B18] border border-white/10 rounded-2xl p-8 text-center">
+              <div className="bg-[#000000] border border-white/10 rounded-2xl p-8 text-center">
                 <Sparkles className="w-9 h-9 text-[#7CE3B3] mx-auto mb-2" />
                 <h3 className="text-base font-bold text-white mb-1">
                   尚無預存題目，開始測驗時將自動動態生成
@@ -533,7 +533,7 @@ export function VocabTab() {
                     return (
                       <div
                         key={quiz.id}
-                        className="bg-[#161B18] border border-white/10 rounded-2xl p-5 space-y-3"
+                        className="bg-[#000000] border border-white/10 rounded-2xl p-5 space-y-3"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
@@ -564,7 +564,7 @@ export function VocabTab() {
                           {(quiz.options || []).map((opt) => (
                             <span
                               key={opt.letter}
-                              className="text-[11px] px-2 py-0.5 rounded-md bg-[#0D110F] border border-white/10 text-zinc-300"
+                              className="text-[11px] px-2 py-0.5 rounded-md bg-[#000000] border border-white/10 text-zinc-300"
                             >
                               ({opt.letter}) {opt.term}
                             </span>
@@ -577,7 +577,7 @@ export function VocabTab() {
                   return (
                     <div
                       key={quiz.id}
-                      className="bg-[#161B18] border border-white/10 rounded-2xl p-5 space-y-2.5"
+                      className="bg-[#000000] border border-white/10 rounded-2xl p-5 space-y-2.5"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
@@ -626,7 +626,7 @@ export function VocabTab() {
                 {setQuizzes.length > visibleQuizCount && (
                   <button
                     onClick={() => setVisibleQuizCount((c) => c + 30)}
-                    className="w-full py-3 rounded-2xl bg-[#161B18] hover:bg-white/5 border border-white/10 text-xs font-semibold text-[#7CE3B3] transition cursor-pointer"
+                    className="w-full py-3 rounded-2xl bg-[#000000] hover:bg-white/5 border border-white/10 text-xs font-semibold text-[#7CE3B3] transition cursor-pointer"
                   >
                     顯示更多題目（目前顯示 {visibleQuizCount} / 共 {setQuizzes.length} 題）
                   </button>
@@ -639,7 +639,7 @@ export function VocabTab() {
         {/* Batch Import Modal */}
         {isBatchModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-[#161B18] border border-white/15 rounded-2xl max-w-lg w-full p-6 space-y-4">
+            <div className="bg-[#000000] border border-white/15 rounded-2xl max-w-lg w-full p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-white">批次匯入單字與片語</h3>
                 <button
@@ -658,7 +658,7 @@ export function VocabTab() {
                   value={batchText}
                   onChange={(e) => setBatchText(e.target.value)}
                   placeholder={`meticulous | adj. | 一絲不苟的；極為謹慎的\nmake ends meet | phr. | 使收支相抵；勉強維持生計\nbreakthrough | n. | 重大突破`}
-                  className="w-full p-3.5 rounded-xl bg-[#0D110F] border border-white/15 text-xs font-mono text-white focus:outline-none focus:border-[#7CE3B3]"
+                  className="w-full p-3.5 rounded-xl bg-[#000000] border border-white/15 text-xs font-mono text-white focus:outline-none focus:border-[#7CE3B3]"
                 />
                 {batchFeedback && (
                   <p className="text-xs text-[#7CE3B3] font-medium">{batchFeedback}</p>
@@ -671,20 +671,20 @@ export function VocabTab() {
                         `meticulous | adj. | 一絲不苟的；極為謹慎的\nmake ends meet | phr. | 使收支相抵；勉強維持生計\nbreakthrough | n. | 重大突破`
                       )
                     }
-                    className="px-3 py-2 rounded-xl bg-[#0D110F] border border-white/10 text-xs text-zinc-300 hover:text-white cursor-pointer mr-auto"
+                    className="px-3 py-2 rounded-xl bg-[#000000] border border-white/10 text-xs text-zinc-300 hover:text-white cursor-pointer mr-auto"
                   >
                     填入範例格式
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsBatchModalOpen(false)}
-                    className="px-4 py-2 rounded-xl bg-[#0D110F] text-xs text-zinc-400 hover:text-white cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-[#000000] text-xs text-zinc-400 hover:text-white cursor-pointer"
                   >
                     取消
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold hover:brightness-105 cursor-pointer"
+                    className="px-5 py-2 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold hover:brightness-105 cursor-pointer"
                   >
                     確認匯入
                   </button>
@@ -706,7 +706,7 @@ export function VocabTab() {
   function renderSetModal() {
     return (
       <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-[#161B18] border border-white/15 rounded-2xl max-w-md w-full p-6 space-y-5">
+        <div className="bg-[#000000] border border-white/15 rounded-2xl max-w-md w-full p-6 space-y-5">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">
               {editingSet ? '編輯單字集' : '新增單字集'}
@@ -730,7 +730,7 @@ export function VocabTab() {
                 placeholder="例如：TOEFL 核心高頻單字 & 片語"
                 value={setFormTitle}
                 onChange={(e) => setSetFormTitle(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#0D110F] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-sm text-white focus:outline-none focus:border-[#7CE3B3]"
               />
             </div>
 
@@ -753,7 +753,7 @@ export function VocabTab() {
                       style={{ backgroundColor: c.hex }}
                       title={c.name}
                     >
-                      {selected && <Check className="w-4 h-4 text-[#0D110F] stroke-[3]" />}
+                      {selected && <Check className="w-4 h-4 text-[#000000] stroke-[3]" />}
                     </button>
                   );
                 })}
@@ -775,8 +775,8 @@ export function VocabTab() {
                       onClick={() => setSetFormIcon(ic.key)}
                       className={`p-3 rounded-xl border flex items-center gap-2.5 text-xs font-medium transition cursor-pointer ${
                         selected
-                          ? 'bg-[#0D110F] border-[#7CE3B3] text-white'
-                          : 'bg-[#0D110F]/60 border-white/10 text-zinc-400 hover:text-white'
+                          ? 'bg-[#000000] border-[#7CE3B3] text-white'
+                          : 'bg-[#000000]/60 border-white/10 text-zinc-400 hover:text-white'
                       }`}
                     >
                       <SetIcon
@@ -795,13 +795,13 @@ export function VocabTab() {
               <button
                 type="button"
                 onClick={() => setIsSetModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl bg-[#0D110F] text-xs font-medium text-zinc-400 hover:text-white cursor-pointer"
+                className="px-4 py-2.5 rounded-xl bg-[#000000] text-xs font-medium text-zinc-400 hover:text-white cursor-pointer"
               >
                 取消
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold hover:brightness-105 cursor-pointer"
+                className="px-6 py-2.5 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold hover:brightness-105 cursor-pointer"
               >
                 {editingSet ? '儲存變更' : '建立單字集'}
               </button>
@@ -831,7 +831,7 @@ export function VocabTab() {
         <button
           id="create-wordset-btn"
           onClick={openCreateSetModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-xs shadow-sm transition cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#000000] font-bold text-xs shadow-sm transition cursor-pointer self-start sm:self-auto"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>新增單字集</span>
@@ -840,11 +840,11 @@ export function VocabTab() {
 
       {/* WordSet Cards Grid */}
       {filteredSets.length === 0 ? (
-        <div className="bg-[#161B18] border border-white/10 rounded-2xl p-12 text-center">
+        <div className="bg-[#000000] border border-white/10 rounded-2xl p-12 text-center">
           <p className="text-sm text-zinc-400 mb-4">找不到符合篩選條件的單字集</p>
           <button
             onClick={openCreateSetModal}
-            className="px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold cursor-pointer"
           >
             + 新增單字集
           </button>
@@ -868,7 +868,7 @@ export function VocabTab() {
               <div
                 key={set.id}
                 onClick={() => setSelectedSetId(set.id)}
-                className="group bg-[#161B18] border border-white/10 hover:border-[#7CE3B3]/50 rounded-2xl p-5 transition-all cursor-pointer flex flex-col justify-between"
+                className="group bg-[#000000] border border-white/10 hover:border-[#7CE3B3]/50 rounded-2xl p-5 transition-all cursor-pointer flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-4">
@@ -883,7 +883,7 @@ export function VocabTab() {
                     </div>
                     <button
                       onClick={(e) => openEditSetModal(set, e)}
-                      className="p-2 rounded-xl bg-[#0D110F] opacity-80 group-hover:opacity-100 text-zinc-400 hover:text-white border border-white/5 transition"
+                      className="p-2 rounded-xl bg-[#000000] opacity-80 group-hover:opacity-100 text-zinc-400 hover:text-white border border-white/5 transition"
                       title="編輯單字集"
                     >
                       <Pencil className="w-3.5 h-3.5" />

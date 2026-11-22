@@ -37,7 +37,7 @@ select {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0D110F;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {

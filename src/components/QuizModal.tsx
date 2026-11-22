@@ -53,7 +53,7 @@ export function QuizModal() {
           className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
             isArchived
               ? 'bg-[#7CE3B3]/20 border-[#7CE3B3] text-[#7CE3B3]'
-              : 'bg-[#161B18] border-white/15 text-zinc-300 hover:border-[#7CE3B3]/60 hover:text-white'
+              : 'bg-[#000000] border-white/15 text-zinc-300 hover:border-[#7CE3B3]/60 hover:text-white'
           }`}
         >
           {isArchived ? '✓ 已封存（之後不再出現）' : '封存此題（之後不再出現）'}
@@ -157,7 +157,7 @@ export function QuizModal() {
     if (!quiz) {
       return (
         <div className="fixed inset-0 z-50 bg-[#000000] flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-[#161B18] border border-white/10 rounded-2xl p-8 text-center space-y-4">
+          <div className="max-w-md w-full bg-[#000000] border border-white/10 rounded-2xl p-8 text-center space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-[#FBBF24]/15 text-[#FBBF24] flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
             </div>
@@ -168,7 +168,7 @@ export function QuizModal() {
             <div className="flex flex-col sm:flex-row gap-2 pt-2">
               <button
                 onClick={closeQuiz}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-[#0D110F] border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#000000] border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer"
               >
                 返回
               </button>
@@ -180,7 +180,7 @@ export function QuizModal() {
                   setActiveTab('home');
                   closeQuiz();
                 }}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold cursor-pointer"
               >
                 改用文意字彙測驗
               </button>
@@ -292,13 +292,13 @@ export function QuizModal() {
         const isCorrect = isSubmitted && chosenLetter === ansInfo?.optionLetter;
 
         let buttonStyle =
-          'bg-[#0D110F] border-white/25 text-zinc-400 hover:border-white/50';
+          'bg-[#000000] border-white/25 text-zinc-400 hover:border-white/50';
         if (isCurrentActive) {
           buttonStyle =
             'bg-[#7CE3B3]/15 border-[#7CE3B3] text-[#7CE3B3] ring-2 ring-[#7CE3B3]/40';
         } else if (!isSubmitted && chosenOpt) {
           buttonStyle =
-            'bg-[#7CE3B3] border-[#7CE3B3] text-[#0D110F] font-bold';
+            'bg-[#7CE3B3] border-[#7CE3B3] text-[#000000] font-bold';
         } else if (isSubmitted) {
           buttonStyle = isCorrect
             ? 'bg-[#7CE3B3]/20 border-[#7CE3B3] text-[#7CE3B3] font-bold'
@@ -356,10 +356,10 @@ export function QuizModal() {
       <div className="fixed inset-0 z-50 bg-[#000000] overflow-y-auto">
         <div className="max-w-[850px] mx-auto px-4 py-6 sm:py-10 space-y-6">
           {/* Top Bar */}
-          <div className="flex items-center justify-between gap-4 bg-[#161B18] border border-white/10 rounded-2xl px-5 py-4">
+          <div className="flex items-center justify-between gap-4 bg-[#000000] border border-white/10 rounded-2xl px-5 py-4">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#7CE3B3] text-[#0D110F]">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#7CE3B3] text-[#000000]">
                   題型一：文意選填 (Word Bank Cloze)
                 </span>
                 <span className="text-xs text-zinc-400">
@@ -376,7 +376,7 @@ export function QuizModal() {
 
             <button
               onClick={closeQuiz}
-              className="p-2 rounded-xl bg-[#0D110F] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
+              className="p-2 rounded-xl bg-[#000000] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
               title="離開測驗"
             >
               <X className="w-5 h-5" />
@@ -384,7 +384,7 @@ export function QuizModal() {
           </div>
 
           {/* 動態防重複出題演算法摘要條 */}
-          <div className="bg-[#161B18] border border-white/10 rounded-2xl px-5 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="bg-[#000000] border border-white/10 rounded-2xl px-5 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2 text-zinc-300">
               <Sparkles className="w-4 h-4 text-[#7CE3B3] shrink-0" />
               <span>
@@ -408,7 +408,7 @@ export function QuizModal() {
           </div>
 
           {/* 互動短文區 */}
-          <div className="bg-[#161B18] border border-white/10 rounded-2xl p-6 space-y-4">
+          <div className="bg-[#000000] border border-white/10 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between text-xs text-zinc-400">
               <span>
                 {!isSubmitted ? (
@@ -430,13 +430,13 @@ export function QuizModal() {
               </span>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#0D110F] border border-white/10 text-base text-zinc-100 leading-[2.35] tracking-wide">
+            <div className="p-5 rounded-2xl bg-[#000000] border border-white/10 text-base text-zinc-100 leading-[2.35] tracking-wide">
               {renderInteractivePassage()}
             </div>
           </div>
 
           {/* (A) ~ (J) 選項池膠囊 (作答中不顯示中文釋義，全部交卷後才公佈) */}
-          <div className="bg-[#161B18] border border-white/10 rounded-2xl p-6 space-y-4">
+          <div className="bg-[#000000] border border-white/10 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-white">
                 單字選項池 (A) ～ (J)
@@ -462,10 +462,10 @@ export function QuizModal() {
                     onClick={() => handleOptionClick(opt.letter)}
                     className={`p-3 rounded-xl border text-left transition-all relative ${
                       isSubmitted
-                        ? 'bg-[#0D110F] border-white/10 opacity-90 cursor-default'
+                        ? 'bg-[#000000] border-white/10 opacity-90 cursor-default'
                         : isUsed
-                          ? 'bg-[#0D110F]/40 border-white/5 opacity-45 hover:opacity-80 cursor-pointer'
-                          : 'bg-[#0D110F] border-white/15 hover:border-[#7CE3B3] hover:bg-[#7CE3B3]/10 cursor-pointer'
+                          ? 'bg-[#000000]/40 border-white/5 opacity-45 hover:opacity-80 cursor-pointer'
+                          : 'bg-[#000000] border-white/15 hover:border-[#7CE3B3] hover:bg-[#7CE3B3]/10 cursor-pointer'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -498,7 +498,7 @@ export function QuizModal() {
               <button
                 type="button"
                 onClick={closeQuiz}
-                className="px-5 py-3.5 rounded-2xl bg-[#161B18] border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer"
+                className="px-5 py-3.5 rounded-2xl bg-[#000000] border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer"
               >
                 暫停離開
               </button>
@@ -506,7 +506,7 @@ export function QuizModal() {
                 id="submit-wordbank-quiz-btn"
                 type="button"
                 onClick={handleSubmitWordBank}
-                className="flex-1 sm:flex-initial px-8 py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-sm shadow-lg shadow-[#7CE3B3]/10 inline-flex items-center justify-center gap-2 transition cursor-pointer"
+                className="flex-1 sm:flex-initial px-8 py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#000000] font-bold text-sm shadow-lg shadow-[#7CE3B3]/10 inline-flex items-center justify-center gap-2 transition cursor-pointer"
               >
                 <Send className="w-4 h-4" />
                 <span>
@@ -515,7 +515,7 @@ export function QuizModal() {
               </button>
             </div>
           ) : (
-            <div className="bg-[#161B18] border border-[#7CE3B3]/40 rounded-2xl p-6 space-y-5">
+            <div className="bg-[#000000] border border-[#7CE3B3]/40 rounded-2xl p-6 space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#7CE3B3]">
@@ -536,7 +536,7 @@ export function QuizModal() {
                       closeQuiz();
                       setActiveTab('history');
                     }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D110F] hover:bg-white/5 border border-white/15 text-xs font-semibold text-white transition cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#000000] hover:bg-white/5 border border-white/15 text-xs font-semibold text-white transition cursor-pointer"
                   >
                     <History className="w-3.5 h-3.5 text-[#7CE3B3]" />
                     <span>查看作答記錄</span>
@@ -549,7 +549,7 @@ export function QuizModal() {
                       setActiveBlankNumber(1);
                       setSessionSeed((s) => s + 1);
                     }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] text-xs font-bold transition cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#000000] text-xs font-bold transition cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>根據最新記錄重新出題</span>
@@ -582,8 +582,8 @@ export function QuizModal() {
                       key={ans.blankNumber}
                       className={`p-4 rounded-xl border ${
                         isCorrect
-                          ? 'bg-[#0D110F] border-[#7CE3B3]/30'
-                          : 'bg-[#0D110F] border-[#F472B6]/40'
+                          ? 'bg-[#000000] border-[#7CE3B3]/30'
+                          : 'bg-[#000000] border-[#F472B6]/40'
                       }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
@@ -691,14 +691,14 @@ export function QuizModal() {
             </span>
             <button
               onClick={closeQuiz}
-              className="p-2 rounded-xl bg-[#0D110F] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
+              className="p-2 rounded-xl bg-[#000000] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* 進度條 */}
-          <div className="w-full h-2 rounded-full bg-[#161B18] overflow-hidden border border-white/10">
+          <div className="w-full h-2 rounded-full bg-[#000000] overflow-hidden border border-white/10">
             <div
               className="h-full bg-[#7CE3B3] transition-all duration-300"
               style={{
@@ -720,7 +720,7 @@ export function QuizModal() {
               <div className="space-y-4">
                 <div
                   key={q.id}
-                  className={`bg-[#161B18] border rounded-2xl p-6 space-y-4 transition ${
+                  className={`bg-[#000000] border rounded-2xl p-6 space-y-4 transition ${
                     !isAnswered
                       ? 'border-white/10'
                       : isCorrect
@@ -738,7 +738,7 @@ export function QuizModal() {
                   <p className="text-base text-zinc-100 leading-relaxed">
                     {parts[0]}
                     <span
-                      className={`inline-block mx-1.5 px-4 py-0.5 rounded-lg bg-[#0D110F] border font-mono font-bold ${
+                      className={`inline-block mx-1.5 px-4 py-0.5 rounded-lg bg-[#000000] border font-mono font-bold ${
                         !isAnswered
                           ? 'border-white/25 text-[#7CE3B3]'
                           : isCorrect
@@ -759,7 +759,7 @@ export function QuizModal() {
                       const isCorrectOpt = q.correctLabel === opt.label;
 
                       let optStyle =
-                        'bg-[#0D110F] border-white/10 text-zinc-200 hover:border-[#7CE3B3]/60 hover:bg-white/[0.03]';
+                        'bg-[#000000] border-white/10 text-zinc-200 hover:border-[#7CE3B3]/60 hover:bg-white/[0.03]';
                       if (isAnswered) {
                         if (isCorrectOpt) {
                           optStyle = 'bg-[#7CE3B3] border-[#7CE3B3] text-[#000000] font-bold';
@@ -788,7 +788,7 @@ export function QuizModal() {
                   </div>
 
                   {isAnswered && (
-                    <div className="mt-2 p-4 rounded-xl bg-[#0D110F] border border-white/10 space-y-2">
+                    <div className="mt-2 p-4 rounded-xl bg-[#000000] border border-white/10 space-y-2">
                       <div className="flex items-center gap-2 text-xs font-bold">
                         {isCorrect ? (
                           <span className="text-[#7CE3B3]">
@@ -819,14 +819,14 @@ export function QuizModal() {
                         nextUnansweredIdx !== -1 ? nextUnansweredIdx : mcCurrentIndex + 1
                       );
                     }}
-                    className="w-full py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-sm transition cursor-pointer"
+                    className="w-full py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#000000] font-bold text-sm transition cursor-pointer"
                   >
                     下一題（{mcCurrentIndex + 2} / {questions.length}）→
                   </button>
                 )}
 
                 {allMcAnswered && isLastQuestion && (
-                  <div className="bg-[#161B18] border border-[#7CE3B3]/40 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="bg-[#000000] border border-[#7CE3B3]/40 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <span className="text-xs font-semibold uppercase tracking-wider text-[#7CE3B3]">
                         SESSION COMPLETED
@@ -842,7 +842,7 @@ export function QuizModal() {
                           closeQuiz();
                           setActiveTab('history');
                         }}
-                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D110F] border border-white/15 text-xs font-semibold text-white cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-xs font-semibold text-white cursor-pointer"
                       >
                         <History className="w-3.5 h-3.5 text-[#7CE3B3]" />
                         <span>查看作答記錄</span>
@@ -855,7 +855,7 @@ export function QuizModal() {
                           setMcCurrentIndex(0);
                           setSessionSeed((s) => s + 1);
                         }}
-                        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold cursor-pointer"
                       >
                         <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
                         <span>根據最新記錄重新出題</span>
@@ -886,7 +886,7 @@ export function QuizModal() {
 
     return (
       <div className="fixed inset-0 z-50 bg-[#000000] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[#161B18] border border-white/10 rounded-2xl p-8 text-center space-y-4">
+        <div className="max-w-md w-full bg-[#000000] border border-white/10 rounded-2xl p-8 text-center space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-[#FBBF24]/15 text-[#FBBF24] flex items-center justify-center mx-auto">
             <AlertTriangle className="w-6 h-6" />
           </div>
@@ -903,14 +903,14 @@ export function QuizModal() {
                     setActiveTab('home');
                   }, 50);
                 }}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold cursor-pointer"
               >
                 返回首頁切換為「單句克漏字 ({mcCount} 題)」
               </button>
             )}
             <button
               onClick={closeQuiz}
-              className="w-full px-4 py-2.5 rounded-xl bg-[#0D110F] border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#000000] border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer"
             >
               關閉
             </button>
@@ -968,14 +968,14 @@ export function QuizModal() {
           </span>
           <button
             onClick={closeQuiz}
-            className="p-2 rounded-xl bg-[#161B18] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
+            className="p-2 rounded-xl bg-[#000000] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* 進度條 */}
-        <div className="w-full h-2 rounded-full bg-[#161B18] overflow-hidden border border-white/10">
+        <div className="w-full h-2 rounded-full bg-[#000000] overflow-hidden border border-white/10">
           <div
             className="h-full bg-[#7CE3B3] transition-all duration-300"
             style={{
@@ -1006,7 +1006,7 @@ export function QuizModal() {
             <div className="space-y-4">
               <div
                 key={q.id}
-                className={`bg-[#161B18] border rounded-2xl p-6 space-y-4 transition ${
+                className={`bg-[#000000] border rounded-2xl p-6 space-y-4 transition ${
                   !isQuestionSubmitted
                     ? 'border-white/10'
                     : isCorrect
@@ -1025,7 +1025,7 @@ export function QuizModal() {
 
                 <p className="text-base text-zinc-100 leading-relaxed">
                   {parts[0]}
-                  <span className="inline-block mx-1.5 px-3 py-0.5 rounded-lg bg-[#0D110F] border border-[#7CE3B3]/40 text-[#7CE3B3] font-mono font-bold">
+                  <span className="inline-block mx-1.5 px-3 py-0.5 rounded-lg bg-[#000000] border border-[#7CE3B3]/40 text-[#7CE3B3] font-mono font-bold">
                     {maskedHint}
                   </span>
                   {parts[1]}
@@ -1056,7 +1056,7 @@ export function QuizModal() {
                       }))
                     }
                     placeholder={isMultiWord ? '輸入完整多字片語' : '輸入完整單字拼字'}
-                    className={`flex-1 px-4 py-3 rounded-xl bg-[#0D110F] border text-sm font-mono text-white focus:outline-none transition ${
+                    className={`flex-1 px-4 py-3 rounded-xl bg-[#000000] border text-sm font-mono text-white focus:outline-none transition ${
                       !isQuestionSubmitted
                         ? 'border-white/15 focus:border-[#7CE3B3]'
                         : isCorrect
@@ -1068,7 +1068,7 @@ export function QuizModal() {
                     <button
                       type="button"
                       onClick={() => handleSubmitSingleLh(lhCurrentIndex, q)}
-                      className="px-6 py-3 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] text-sm font-bold transition cursor-pointer shrink-0"
+                      className="px-6 py-3 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#000000] text-sm font-bold transition cursor-pointer shrink-0"
                     >
                       確認答案
                     </button>
@@ -1076,7 +1076,7 @@ export function QuizModal() {
                 </div>
 
                 {isQuestionSubmitted && (
-                  <div className="mt-2 p-4 rounded-xl bg-[#0D110F] border border-white/10 space-y-2">
+                  <div className="mt-2 p-4 rounded-xl bg-[#000000] border border-white/10 space-y-2">
                     <div className="flex flex-wrap items-center gap-2.5 text-xs font-bold">
                       {isCorrect ? (
                         <span className="text-[#7CE3B3]">
@@ -1108,14 +1108,14 @@ export function QuizModal() {
                 <button
                   type="button"
                   onClick={() => setLhCurrentIndex((i) => i + 1)}
-                  className="w-full py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#0D110F] font-bold text-sm transition cursor-pointer"
+                  className="w-full py-3.5 rounded-2xl bg-[#7CE3B3] hover:brightness-105 text-[#000000] font-bold text-sm transition cursor-pointer"
                 >
                   下一題（{lhCurrentIndex + 2} / {questions.length}）→
                 </button>
               )}
 
               {allLhAnswered && isLastQuestion && (
-                <div className="bg-[#161B18] border border-[#7CE3B3]/40 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="bg-[#000000] border border-[#7CE3B3]/40 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <span className="text-xs font-semibold uppercase tracking-wider text-[#7CE3B3]">
                       SESSION COMPLETED
@@ -1131,7 +1131,7 @@ export function QuizModal() {
                         closeQuiz();
                         setActiveTab('history');
                       }}
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D110F] border border-white/15 text-xs font-semibold text-white cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-xs font-semibold text-white cursor-pointer"
                     >
                       <History className="w-3.5 h-3.5 text-[#7CE3B3]" />
                       <span>查看作答記錄</span>
@@ -1144,7 +1144,7 @@ export function QuizModal() {
                         setLhCurrentIndex(0);
                         setSessionSeed((s) => s + 1);
                       }}
-                      className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#0D110F] text-xs font-bold cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
                       <span>根據最新記錄重新出題</span>

@@ -89,7 +89,7 @@ export function HomeTab() {
 
   if (wordSets.length === 0) {
     return (
-      <div className="bg-[#161B18] border border-white/10 rounded-2xl p-10 text-center max-w-xl mx-auto my-12">
+      <div className="bg-[#000000] border border-white/10 rounded-2xl p-10 text-center max-w-xl mx-auto my-12">
         <div className="w-14 h-14 rounded-2xl bg-[#7CE3B3]/15 text-[#7CE3B3] flex items-center justify-center mx-auto mb-4">
           <Plus className="w-7 h-7" />
         </div>
@@ -99,7 +99,7 @@ export function HomeTab() {
         </p>
         <button
           onClick={() => setActiveTab('vocab')}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#7CE3B3] text-[#0D110F] font-semibold text-sm hover:brightness-105 transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#7CE3B3] text-[#000000] font-semibold text-sm hover:brightness-105 transition cursor-pointer"
         >
           <span>前往新增單字集</span>
           <ArrowRight className="w-4 h-4" />
@@ -111,7 +111,7 @@ export function HomeTab() {
   return (
     <div className="space-y-6 pb-24">
       {/* 3. 快速開始區 */}
-      <section className="bg-[#161B18] border border-white/10 rounded-2xl p-6 space-y-6">
+      <section className="bg-[#000000] border border-white/10 rounded-2xl p-6 space-y-6">
 
         {/* 最近使用的單字集選擇卡片 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -130,8 +130,8 @@ export function HomeTab() {
                 onClick={() => setRecentSetId(set.id)}
                 className={`text-left p-4 rounded-2xl border transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#0D110F] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
-                    : 'bg-[#0D110F]/60 border-white/10 hover:border-white/25'
+                    ? 'bg-[#000000] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
+                    : 'bg-[#000000]/60 border-white/10 hover:border-white/25'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
@@ -171,14 +171,14 @@ export function HomeTab() {
               onClick={() => setSelectedQuestionType('word_bank_cloze')}
               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3.5 ${
                 selectedQuestionType === 'word_bank_cloze'
-                  ? 'bg-[#0D110F] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
-                  : 'bg-[#0D110F]/60 border-white/10 hover:border-white/25'
+                  ? 'bg-[#000000] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
+                  : 'bg-[#000000]/60 border-white/10 hover:border-white/25'
               }`}
             >
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
                   selectedQuestionType === 'word_bank_cloze'
-                    ? 'bg-[#7CE3B3] text-[#0D110F]'
+                    ? 'bg-[#7CE3B3] text-[#000000]'
                     : 'bg-white/5 text-zinc-400'
                 }`}
               >
@@ -203,14 +203,14 @@ export function HomeTab() {
               onClick={() => setSelectedQuestionType('letter_hint_cloze')}
               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3.5 ${
                 selectedQuestionType === 'letter_hint_cloze'
-                  ? 'bg-[#0D110F] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
-                  : 'bg-[#0D110F]/60 border-white/10 hover:border-white/25'
+                  ? 'bg-[#000000] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
+                  : 'bg-[#000000]/60 border-white/10 hover:border-white/25'
               }`}
             >
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
                   selectedQuestionType === 'letter_hint_cloze'
-                    ? 'bg-[#7CE3B3] text-[#0D110F]'
+                    ? 'bg-[#7CE3B3] text-[#000000]'
                     : 'bg-white/5 text-zinc-400'
                 }`}
               >
@@ -235,14 +235,14 @@ export function HomeTab() {
               onClick={() => setSelectedQuestionType('multiple_choice_cloze')}
               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3.5 ${
                 selectedQuestionType === 'multiple_choice_cloze'
-                  ? 'bg-[#0D110F] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
-                  : 'bg-[#0D110F]/60 border-white/10 hover:border-white/25'
+                  ? 'bg-[#000000] border-[#7CE3B3] ring-1 ring-[#7CE3B3]/40'
+                  : 'bg-[#000000]/60 border-white/10 hover:border-white/25'
               }`}
             >
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
                   selectedQuestionType === 'multiple_choice_cloze'
-                    ? 'bg-[#7CE3B3] text-[#0D110F]'
+                    ? 'bg-[#7CE3B3] text-[#000000]'
                     : 'bg-white/5 text-zinc-400'
                 }`}
               >
@@ -275,9 +275,9 @@ export function HomeTab() {
                 questionCount: selectedQuestionType === 'word_bank_cloze' ? 10 : 5,
               })
             }
-            className="w-full py-4 px-6 rounded-2xl bg-[#7CE3B3] hover:brightness-105 active:scale-[0.995] text-[#0D110F] font-bold text-base shadow-lg shadow-[#7CE3B3]/10 flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+            className="w-full py-4 px-6 rounded-2xl bg-[#7CE3B3] hover:brightness-105 active:scale-[0.995] text-[#000000] font-bold text-base shadow-lg shadow-[#7CE3B3]/10 flex items-center justify-center gap-2.5 transition-all cursor-pointer"
           >
-            <Play className="w-5 h-5 fill-[#0D110F]" />
+            <Play className="w-5 h-5 fill-[#000000]" />
             <span>
               開始練習（
               {selectedQuestionType === 'word_bank_cloze'

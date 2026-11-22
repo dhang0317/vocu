@@ -22,18 +22,18 @@ export function Sidebar() {
   );
 
   return (
-    <header className="w-full bg-[#161B18]/90 backdrop-blur-md border-b border-white/10 px-4 py-3 select-none sticky top-0 z-30">
+    <header className="w-full bg-[#000000]/90 backdrop-blur-md border-b border-white/10 px-4 py-3 select-none sticky top-0 z-30">
       <div className="max-w-[850px] mx-auto flex items-center justify-center gap-3 sm:gap-6">
         {/* Brand Logo */}
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#7CE3B3] text-[#0D110F] flex items-center justify-center font-bold text-base tracking-tight">
+          <div className="w-8 h-8 rounded-xl bg-[#7CE3B3] text-[#000000] flex items-center justify-center font-bold text-base tracking-tight">
             V
           </div>
           <span className="text-lg font-bold tracking-tight text-white">Vocu</span>
         </div>
 
         {/* Centered Top Navigation Pills */}
-        <nav className="inline-flex items-center gap-1.5 p-1 rounded-full bg-[#0D110F] border border-white/10">
+        <nav className="inline-flex items-center gap-1.5 p-1 rounded-full bg-[#000000] border border-white/10">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isSelected = activeTab === item.id;
@@ -44,7 +44,7 @@ export function Sidebar() {
                 onClick={() => setActiveTab(item.id)}
                 className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#7CE3B3] text-[#0D110F] font-semibold shadow-sm'
+                    ? 'bg-[#7CE3B3] text-[#000000] font-semibold shadow-sm'
                     : 'text-zinc-300 hover:text-white'
                 }`}
               >
