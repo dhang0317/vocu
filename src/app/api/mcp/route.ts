@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
               {
                 name: 'push_quiz_items',
                 description:
-                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（不限單次題數）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title、passage 含 (1) ______ ~ (10) ______、options 長度必須剛好為 10、answers 長度必須剛好為 10）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}、options 長度必須剛好為 4、correctLabel、targetTerm，僅限單字不可為片語）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}、targetTerm、pos、chineseHint，僅限單字不可為片語）。',
+                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（不限單次題數）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title、passage 含 (1) ______ ~ (10) ______、options 長度必須剛好為 10、answers 長度必須剛好為 10）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}、options 長度必須剛好為 4、correctLabel、targetTerm，僅限單字不可為片語）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}、targetTerm、pos、chineseHint，僅限單字不可為片語）。重要：word_bank_cloze 與 multiple_choice_cloze 的所有選項皆必須來自目標單字集（setId）內的單字，不可使用單字集以外的字作為干擾選項。',
                 inputSchema: {
                   type: 'object',
                   properties: {
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
                     items: {
                       type: 'array',
                       description:
-                        '符合 Vocu QuizItem 格式的題目陣列。注意：word_bank_cloze 的 options 與 answers 陣列長度必須皆剛好為 10（A–J），否則會被驗證擋下；multiple_choice_cloze 的 options 必須剛好為 4 筆。',
+                        '符合 Vocu QuizItem 格式的題目陣列。注意：word_bank_cloze 的 options 與 answers 陣列長度必須皆剛好為 10（A–J），multiple_choice_cloze 的 options 必須剛好為 4 筆，且所有選項都必須是目標單字集內的單字，否則會被驗證擋下。',
                       items: { type: 'object' },
                     },
                   },
@@ -455,9 +455,29 @@ export async function POST(req: NextRequest) {
           );
         }
 
+        const setById = new Map(workspace.wordSets.map((s) => [s.id, s]));
+        const setByTitle = new Map(
+          workspace.wordSets.map((s) => [s.title.trim().toLowerCase(), s])
+        );
+        const wordsBySetId = new Map<string, Set<string>>();
+        for (const w of workspace.words) {
+          if (!wordsBySetId.has(w.setId)) wordsBySetId.set(w.setId, new Set());
+          wordsBySetId.get(w.setId)!.add(w.term.trim().toLowerCase());
+        }
+        const resolveItemSetId = (rawSetId?: string) => {
+          let sid = rawSetId || (typeof args.setId === 'string' ? args.setId : undefined);
+          if (!sid || !setById.has(sid)) {
+            const byTitle = sid ? setByTitle.get(sid.trim().toLowerCase()) : undefined;
+            sid = byTitle?.id || workspace.wordSets[0]?.id || 'set-core-academic';
+          }
+          return sid;
+        };
+
         // Pre-save validation for all quiz types
         for (let i = 0; i < incoming.length; i++) {
           const item = incoming[i];
+          const targetSetId = resolveItemSetId(item.setId);
+          const allowedTerms = wordsBySetId.get(targetSetId);
           if (item.type === 'word_bank_cloze') {
             const blankMatches = item.passage?.match(/\(\d+\)\s*______/g) || [];
             if (blankMatches.length !== 10) {
@@ -508,6 +528,23 @@ export async function POST(req: NextRequest) {
                 },
                 { headers: CORS_HEADERS }
               );
+            }
+            if (allowedTerms && allowedTerms.size > 0) {
+              for (const optTerm of uniqueTerms) {
+                if (!allowedTerms.has(optTerm)) {
+                  return NextResponse.json(
+                    {
+                      jsonrpc: '2.0',
+                      id,
+                      error: {
+                        code: -32602,
+                        message: `Pre-save validation failed (第 ${i + 1} 題): 選項 "${optTerm}" 不在目標單字集內，所有選項皆須來自單字集內的單字。`,
+                      },
+                    },
+                    { headers: CORS_HEADERS }
+                  );
+                }
+              }
             }
           } else {
             // 單句題型 (letter_hint_cloze / multiple_choice_cloze) 嚴格校驗
@@ -574,14 +611,28 @@ export async function POST(req: NextRequest) {
                   { headers: CORS_HEADERS }
                 );
               }
+              if (allowedTerms && allowedTerms.size > 0) {
+                for (const o of validOpts) {
+                  const t = (typeof o === 'string' ? o : o?.term || '').trim().toLowerCase();
+                  if (t && !allowedTerms.has(t)) {
+                    return NextResponse.json(
+                      {
+                        jsonrpc: '2.0',
+                        id,
+                        error: {
+                          code: -32602,
+                          message: `Pre-save validation failed (第 ${i + 1} 題): 選項 "${t}" 不在目標單字集內，所有選項皆須來自單字集內的單字。`,
+                        },
+                      },
+                      { headers: CORS_HEADERS }
+                    );
+                  }
+                }
+              }
             }
           }
         }
 
-        const setById = new Map(workspace.wordSets.map((s) => [s.id, s]));
-        const setByTitle = new Map(
-          workspace.wordSets.map((s) => [s.title.trim().toLowerCase(), s])
-        );
         const wordById = new Map(workspace.words.map((w) => [w.id, w]));
         const wordByTerm = new Map(
           workspace.words.map((w) => [w.term.trim().toLowerCase(), w])
