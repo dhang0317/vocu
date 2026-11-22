@@ -86,11 +86,14 @@ export async function POST(req: NextRequest) {
             tools: [
               {
                 name: 'get_word_sets',
-                description: '讀取 Vocu 中的所有單字集與單字列表',
+                description:
+                  '讀取 Vocu 中的所有單字集（含各單字集精確單字數 wordCount）與單字列表（支援 offset / limit 分頁）',
                 inputSchema: {
                   type: 'object',
                   properties: {
                     setId: { type: 'string', description: '選填：指定單字集 ID' },
+                    offset: { type: 'number', description: '選填：單字列表分頁起始位置，預設 0' },
+                    limit: { type: 'number', description: '選填：單字列表每頁筆數，預設 200，最大 500' },
                   },
                 },
               },
@@ -238,9 +241,21 @@ export async function POST(req: NextRequest) {
         const sets = args.setId
           ? workspace.wordSets.filter((s) => s.id === args.setId)
           : workspace.wordSets;
-        const words = args.setId
+        const setsWithCount = sets.map((s) => ({
+          ...s,
+          wordCount: workspace.words.filter((w) => w.setId === s.id).length,
+        }));
+        const allWords = args.setId
           ? workspace.words.filter((w) => w.setId === args.setId)
           : workspace.words;
+
+        const rawOffset = typeof args.offset === 'number' ? Math.floor(args.offset) : 0;
+        const offset = Math.max(0, rawOffset);
+        const rawLimit = typeof args.limit === 'number' ? Math.floor(args.limit) : 200;
+        const limit = Math.min(500, Math.max(1, rawLimit));
+        const pagedWords = allWords.slice(offset, offset + limit);
+        const hasMore = offset + pagedWords.length < allWords.length;
+        const nextOffset = hasMore ? offset + pagedWords.length : null;
 
         return NextResponse.json(
           {
@@ -250,7 +265,20 @@ export async function POST(req: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify({ wordSets: sets, words }, null, 2),
+                  text: JSON.stringify(
+                    {
+                      totalWordSets: setsWithCount.length,
+                      totalWords: allWords.length,
+                      offset,
+                      limit,
+                      hasMore,
+                      nextOffset,
+                      wordSets: setsWithCount,
+                      words: pagedWords,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             },
