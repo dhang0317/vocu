@@ -325,8 +325,8 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     // 若本地 24 小時內已快取子集合題庫，直接使用快取，省下每次重整下載 1,200+ 筆 Firestore 文件的流量
-    const CACHE_KEY = 'vocu_sub_quizzes_cache_v1';
-    const CACHE_TS_KEY = 'vocu_sub_quizzes_ts_v1';
+    const CACHE_KEY = 'vocu_sub_quizzes_cache_v2';
+    const CACHE_TS_KEY = 'vocu_sub_quizzes_ts_v2';
     try {
       const ts = Number(localStorage.getItem(CACHE_TS_KEY) || '0');
       const cachedRaw = localStorage.getItem(CACHE_KEY);
@@ -426,24 +426,53 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
               term: String(obj.term || obj.text || obj.value || obj.word || '').trim(),
             };
           });
-          let correctLabel = String(raw.correctLabel || '').toUpperCase().slice(0, 1) as
-            | 'A'
-            | 'B'
-            | 'C'
-            | 'D';
+          // 優先以 targetTerm 對應正確選項的 label（避免 AI 傳了洗牌後選項但 correctLabel 仍固定填 'A'）
+          const matchedByTerm = targetTerm
+            ? normalizedOptions.find(
+                (o) => o.term.trim().toLowerCase() === targetTerm.trim().toLowerCase()
+              )
+            : undefined;
+
+          let correctLabel = (
+            matchedByTerm?.label ||
+            String(raw.correctLabel || '').toUpperCase().slice(0, 1)
+          ) as 'A' | 'B' | 'C' | 'D';
           if (!['A', 'B', 'C', 'D'].includes(correctLabel)) {
-            const matched = normalizedOptions.find(
-              (o) => o.term.toLowerCase() === targetTerm.trim().toLowerCase()
-            );
-            correctLabel = matched ? matched.label : 'A';
+            correctLabel = 'A';
           }
+
+          // 若洗牌順序過於固定，依 questionHash 洗牌並同步更新 correctLabel
+          const terms = normalizedOptions.map((o) => o.term);
+          const seed = questionHash
+            .split('')
+            .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+          const shuffledTerms = [...terms];
+          for (let i = shuffledTerms.length - 1; i > 0; i--) {
+            const j = (seed + i * 7) % (i + 1);
+            [shuffledTerms[i], shuffledTerms[j]] = [shuffledTerms[j], shuffledTerms[i]];
+          }
+          const shuffledOptions = labels.map((label, idx) => ({
+            label,
+            term: shuffledTerms[idx] || '',
+          }));
+          const correctTermStr =
+            (matchedByTerm?.term ||
+              normalizedOptions.find((o) => o.label === correctLabel)?.term ||
+              targetTerm)
+              .trim()
+              .toLowerCase();
+          const finalMatched = shuffledOptions.find(
+            (o) => o.term.trim().toLowerCase() === correctTermStr
+          );
+          const finalCorrectLabel = finalMatched ? finalMatched.label : correctLabel;
+
           return {
             ...raw,
             type: 'multiple_choice_cloze' as const,
             sentence,
-            targetTerm,
-            options: normalizedOptions,
-            correctLabel,
+            targetTerm: finalMatched?.term || targetTerm,
+            options: shuffledOptions,
+            correctLabel: finalCorrectLabel,
             questionHash,
           } as QuizItem;
         }
