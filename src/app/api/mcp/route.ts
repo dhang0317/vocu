@@ -202,6 +202,16 @@ export async function POST(req: NextRequest) {
                   },
                 },
               },
+              {
+                name: 'get_archived_quizzes',
+                description: '讀取所有已被使用者「答對自動封存」的題目清單（含 id, questionHash, targetTerm, sentenceOrPassage）',
+                inputSchema: {
+                  type: 'object',
+                  properties: {
+                    limit: { type: 'number', description: '回傳筆數上限，預設 200' },
+                  },
+                },
+              },
             ],
           },
         },
@@ -749,6 +759,54 @@ export async function POST(req: NextRequest) {
                 {
                   type: 'text',
                   text: `已成功從題庫刪除 ${quizIds.length} 筆題目。`,
+                },
+              ],
+            },
+          },
+          { headers: CORS_HEADERS }
+        );
+      }
+
+      if (toolName === 'get_archived_quizzes') {
+        const limit = typeof args.limit === 'number' ? args.limit : 200;
+        const archivedHashes = new Set(
+          Object.entries(workspace.settings?.questionRatings || {})
+            .filter(([, score]) => score >= 4)
+            .map(([h]) => h)
+        );
+        const subQuizzes = await loadMcpQuizzesFromSubcollection();
+        const mergedMap = new Map<string, QuizItem>();
+        [...workspace.quizBank, ...subQuizzes].forEach((q) => mergedMap.set(q.id, q));
+        const archivedItems = Array.from(mergedMap.values())
+          .filter((q) => archivedHashes.has(q.questionHash))
+          .slice(0, limit)
+          .map((q) => ({
+            id: q.id,
+            setId: q.setId,
+            type: q.type,
+            questionHash: q.questionHash,
+            targetTerm: q.type === 'word_bank_cloze' ? q.title : q.targetTerm,
+            sentenceOrPassage:
+              q.type === 'word_bank_cloze' ? q.passage : q.sentence || '',
+          }));
+
+        return NextResponse.json(
+          {
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(
+                    {
+                      archivedTotal: archivedHashes.size,
+                      returnedCount: archivedItems.length,
+                      items: archivedItems,
+                    },
+                    null,
+                    2
+                  ),
                 },
               ],
             },
