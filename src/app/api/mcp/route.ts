@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
               {
                 name: 'get_weak_words',
                 description:
-                  '讀取作答記錄並回傳「弱點優先」與「尚未測驗」的單字佇列，供 AI 助理出題',
+                  '讀取作答記錄並回傳「最少出題次數 (quizUsageCount) 優先、弱點優先」的單字佇列。出題時請設 limit 為 20~30，並只從 quizUsageCount === 0 的單字挑選（直到全單字集都出過一遍為止），切勿憑記憶抓字以免重複。',
                 inputSchema: {
                   type: 'object',
                   properties: {
