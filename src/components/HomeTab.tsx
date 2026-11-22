@@ -136,11 +136,9 @@ export function HomeTab() {
               >
                 <div className="flex items-center justify-between mb-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{
-                      backgroundColor: `${set.color}20`,
-                      color: set.color,
-                    }}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      isSelected ? 'bg-white text-[#000000]' : 'bg-white/10 text-white'
+                    }`}
                   >
                     <SetIcon icon={set.icon} className="w-5 h-5" />
                   </div>

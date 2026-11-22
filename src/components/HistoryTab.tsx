@@ -159,10 +159,7 @@ export function HistoryTab() {
 
             {set && (
               <div className="pt-3 border-t border-white/10 flex items-center justify-end text-[11px]">
-                <span
-                  className="inline-flex items-center gap-1 font-medium"
-                  style={{ color: set.color }}
-                >
+                <span className="inline-flex items-center gap-1 font-medium text-zinc-300">
                   <Layers className="w-3 h-3" />
                   {set.title}
                 </span>

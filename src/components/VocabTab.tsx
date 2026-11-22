@@ -872,13 +872,7 @@ export function VocabTab() {
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-4">
-                    <div
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                      style={{
-                        backgroundColor: `${set.color}20`,
-                        color: set.color,
-                      }}
-                    >
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 text-white flex items-center justify-center shrink-0">
                       <SetIcon icon={set.icon} className="w-6 h-6" />
                     </div>
                     <button
