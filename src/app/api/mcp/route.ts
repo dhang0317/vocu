@@ -123,13 +123,14 @@ export async function POST(req: NextRequest) {
               {
                 name: 'push_quiz_items',
                 description:
-                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（單次最多 25 題）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title, passage 含 (1) ______ ~ (10) ______, options[10], answers[10]）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}, options[4], correctLabel, targetTerm）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}, targetTerm, pos, chineseHint）。',
+                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（單次最多 25 題）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title、passage 含 (1) ______ ~ (10) ______、options 長度必須剛好為 10、answers 長度必須剛好為 10）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}、options 長度必須剛好為 4、correctLabel、targetTerm，僅限單字不可為片語）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}、targetTerm、pos、chineseHint，僅限單字不可為片語）。',
                 inputSchema: {
                   type: 'object',
                   properties: {
                     items: {
                       type: 'array',
-                      description: '符合 Vocu QuizItem 格式的題目陣列',
+                      description:
+                        '符合 Vocu QuizItem 格式的題目陣列。注意：word_bank_cloze 的 options 與 answers 陣列長度必須皆剛好為 10（A–J），否則會被驗證擋下；multiple_choice_cloze 的 options 必須剛好為 4 筆。',
                       items: { type: 'object' },
                     },
                   },
