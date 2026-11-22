@@ -193,12 +193,14 @@ export async function POST(req: NextRequest) {
               },
               {
                 name: 'get_quiz_items',
-                description: '讀取目前已上傳至 Vocu Firestore 題庫的題目列表（含 id、setId、type、targetTerm、questionHash）',
+                description: '分頁讀取目前已上傳至 Vocu Firestore 題庫的題目列表（支援 setId, type, offset, limit）',
                 inputSchema: {
                   type: 'object',
                   properties: {
                     setId: { type: 'string', description: '選填：指定單字集 ID' },
-                    limit: { type: 'number', description: '回傳筆數上限，預設 50' },
+                    type: { type: 'string', description: '選填：篩選題型 (word_bank_cloze | multiple_choice_cloze | letter_hint_cloze)' },
+                    offset: { type: 'number', description: '分頁起始索引，預設 0' },
+                    limit: { type: 'number', description: '單頁回傳筆數上限，預設 100' },
                   },
                 },
               },
@@ -662,13 +664,17 @@ export async function POST(req: NextRequest) {
       }
 
       if (toolName === 'get_quiz_items') {
-        const limit = typeof args.limit === 'number' ? args.limit : 200;
+        const offset = typeof args.offset === 'number' && args.offset >= 0 ? args.offset : 0;
+        const limit = typeof args.limit === 'number' && args.limit > 0 ? Math.min(args.limit, 200) : 100;
         const subQuizzes = await loadMcpQuizzesFromSubcollection();
         const mergedMap = new Map<string, QuizItem>();
         [...workspace.quizBank, ...subQuizzes].forEach((q) => mergedMap.set(q.id, q));
         let allQuizzes = Array.from(mergedMap.values());
         if (args.setId) {
           allQuizzes = allQuizzes.filter((q) => q.setId === args.setId);
+        }
+        if (args.type) {
+          allQuizzes = allQuizzes.filter((q) => q.type === args.type);
         }
 
         const answeredHashes = new Set(workspace.practiceLogs.map((l) => l.questionHash));
@@ -678,7 +684,10 @@ export async function POST(req: NextRequest) {
             .map(([h]) => h)
         );
 
-        const summary = allQuizzes.slice(0, limit).map((q) => ({
+        const pageItems = allQuizzes.slice(offset, offset + limit);
+        const hasMore = offset + pageItems.length < allQuizzes.length;
+
+        const summary = pageItems.map((q) => ({
           id: q.id,
           setId: q.setId,
           type: q.type,
@@ -701,15 +710,12 @@ export async function POST(req: NextRequest) {
                   text: JSON.stringify(
                     {
                       total: allQuizzes.length,
+                      offset,
+                      limit,
+                      hasMore,
+                      nextOffset: hasMore ? offset + pageItems.length : null,
                       archivedCount: archivedHashes.size,
                       answeredCount: answeredHashes.size,
-                      avoidQuestionHashes: Array.from(
-                        new Set([
-                          ...allQuizzes.map((q) => q.questionHash),
-                          ...answeredHashes,
-                          ...archivedHashes,
-                        ])
-                      ),
                       items: summary,
                     },
                     null,
