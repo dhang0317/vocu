@@ -58,7 +58,7 @@ export function WeightStatusBadge({
   }
   if (status === 'untested') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#7CE3B3]/15 text-[#7CE3B3] border border-[#7CE3B3]/30">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#52B788]/15 text-[#52B788] border border-[#52B788]/30">
         <Sparkles className="w-3 h-3 shrink-0" />
         <span>尚未測驗</span>
       </span>

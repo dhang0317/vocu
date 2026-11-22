@@ -53,7 +53,7 @@ class VocuErrorBoundary extends React.Component<
             </p>
             <button
               onClick={() => this.setState({ hasError: false, message: '' })}
-              className="w-full py-2.5 rounded-xl bg-[#7CE3B3] text-[#000000] text-xs font-bold cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-[#000000] text-xs font-bold cursor-pointer"
             >
               重新嘗試
             </button>
@@ -75,7 +75,7 @@ export function VocuApp() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-[#000000] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#7CE3B3] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-white border-t-transparent animate-spin" />
       </div>
     );
   }

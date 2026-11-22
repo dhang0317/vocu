@@ -90,7 +90,7 @@ export function HomeTab() {
   if (wordSets.length === 0) {
     return (
       <div className="bg-[#000000] border border-white/10 rounded-2xl p-10 text-center max-w-xl mx-auto my-12">
-        <div className="w-14 h-14 rounded-2xl bg-[#7CE3B3]/15 text-[#7CE3B3] flex items-center justify-center mx-auto mb-4">
+        <div className="w-14 h-14 rounded-2xl bg-white/10 text-zinc-300 flex items-center justify-center mx-auto mb-4">
           <Plus className="w-7 h-7" />
         </div>
         <h2 className="text-xl font-bold text-white mb-2">尚無任何單字集</h2>
@@ -99,7 +99,7 @@ export function HomeTab() {
         </p>
         <button
           onClick={() => setActiveTab('vocab')}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#7CE3B3] text-[#000000] font-semibold text-sm hover:brightness-105 transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-[#000000] font-semibold text-sm hover:brightness-105 transition cursor-pointer"
         >
           <span>前往新增單字集</span>
           <ArrowRight className="w-4 h-4" />
@@ -145,7 +145,7 @@ export function HomeTab() {
                     <SetIcon icon={set.icon} className="w-5 h-5" />
                   </div>
                   {isSelected && (
-                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#7CE3B3]/20 text-[#7CE3B3]">
+                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300">
                       目前選中
                     </span>
                   )}
@@ -178,7 +178,7 @@ export function HomeTab() {
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
                   selectedQuestionType === 'word_bank_cloze'
-                    ? 'bg-[#7CE3B3] text-[#000000]'
+                    ? 'bg-white text-[#000000]'
                     : 'bg-white/5 text-zinc-400'
                 }`}
               >
@@ -188,7 +188,7 @@ export function HomeTab() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-white">文意選填</span>
                   {selectedQuestionType === 'word_bank_cloze' && (
-                    <CheckCircle2 className="w-4 h-4 text-[#7CE3B3] shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-zinc-300 shrink-0" />
                   )}
                 </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
@@ -210,7 +210,7 @@ export function HomeTab() {
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
                   selectedQuestionType === 'letter_hint_cloze'
-                    ? 'bg-[#7CE3B3] text-[#000000]'
+                    ? 'bg-white text-[#000000]'
                     : 'bg-white/5 text-zinc-400'
                 }`}
               >
@@ -220,7 +220,7 @@ export function HomeTab() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-white">文意字彙</span>
                   {selectedQuestionType === 'letter_hint_cloze' && (
-                    <CheckCircle2 className="w-4 h-4 text-[#7CE3B3] shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-zinc-300 shrink-0" />
                   )}
                 </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
@@ -242,7 +242,7 @@ export function HomeTab() {
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
                   selectedQuestionType === 'multiple_choice_cloze'
-                    ? 'bg-[#7CE3B3] text-[#000000]'
+                    ? 'bg-white text-[#000000]'
                     : 'bg-white/5 text-zinc-400'
                 }`}
               >
@@ -252,7 +252,7 @@ export function HomeTab() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-white">單句克漏字</span>
                   {selectedQuestionType === 'multiple_choice_cloze' && (
-                    <CheckCircle2 className="w-4 h-4 text-[#7CE3B3] shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-zinc-300 shrink-0" />
                   )}
                 </div>
                 <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
@@ -275,7 +275,7 @@ export function HomeTab() {
                 questionCount: selectedQuestionType === 'word_bank_cloze' ? 10 : 5,
               })
             }
-            className="w-full py-4 px-6 rounded-2xl bg-[#7CE3B3] hover:brightness-105 active:scale-[0.995] text-[#000000] font-bold text-base shadow-lg shadow-[#7CE3B3]/10 flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+            className="w-full py-4 px-6 rounded-2xl bg-white hover:bg-zinc-200 active:scale-[0.995] text-[#000000] font-bold text-base shadow-lg shadow-[#7CE3B3]/10 flex items-center justify-center gap-2.5 transition-all cursor-pointer"
           >
             <Play className="w-5 h-5 fill-[#000000]" />
             <span>

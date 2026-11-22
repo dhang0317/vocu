@@ -148,7 +148,7 @@ export function ProfileTab() {
   return (
     <div className="space-y-6 pb-24">
       <header>
-        <p className="text-xs font-medium uppercase tracking-wider text-[#7CE3B3] mb-1">
+        <p className="text-xs font-medium uppercase tracking-wider text-zinc-300 mb-1">
           PROFILE, STRATEGY & MCP AGENT
         </p>
         <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
@@ -160,10 +160,10 @@ export function ProfileTab() {
       </header>
 
       {/* 3. Agent 連線（MCP Server 設定區） */}
-      <section className="bg-[#000000] border border-[#7CE3B3]/40 rounded-2xl p-6 space-y-5">
+      <section className="bg-[#000000] border border-white/20 rounded-2xl p-6 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#7CE3B3]/15 text-[#7CE3B3] flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-white/10 text-zinc-300 flex items-center justify-center shrink-0">
               <Terminal className="w-5 h-5" />
             </div>
             <div>
@@ -171,8 +171,8 @@ export function ProfileTab() {
                 <h2 className="text-lg font-bold text-white">
                   Agent 連線（MCP Server 設定區）
                 </h2>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#7CE3B3]/20 text-[#7CE3B3]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#7CE3B3] animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/10 text-zinc-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                   已連線
                 </span>
               </div>
@@ -184,7 +184,7 @@ export function ProfileTab() {
 
           <button
             onClick={handleSimulateMcpPush}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#7CE3B3]/15 hover:bg-[#7CE3B3]/25 border border-[#7CE3B3]/40 text-[#7CE3B3] text-xs font-semibold transition cursor-pointer self-start sm:self-center"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/10 border border-white/20 text-zinc-300 text-xs font-semibold transition cursor-pointer self-start sm:self-center"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>模擬 AI 助理推送新題目</span>
@@ -197,7 +197,7 @@ export function ProfileTab() {
         </div>
 
         {mcpSimulatedMsg && (
-          <div className="p-3.5 rounded-xl bg-[#7CE3B3]/15 border border-[#7CE3B3]/40 text-xs text-[#7CE3B3] font-medium flex items-center gap-2">
+          <div className="p-3.5 rounded-xl bg-white/10 border border-white/20 text-xs text-zinc-300 font-medium flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{mcpSimulatedMsg}</span>
           </div>
@@ -209,13 +209,13 @@ export function ProfileTab() {
             專屬 MCP Server URL（SSE Endpoint）
           </label>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <div className="flex-1 px-4 py-3 rounded-xl bg-[#000000] border border-white/15 font-mono text-xs text-[#7CE3B3] select-all overflow-x-auto">
+            <div className="flex-1 px-4 py-3 rounded-xl bg-[#000000] border border-white/15 font-mono text-xs text-zinc-300 select-all overflow-x-auto">
               {settings.mcpServerUrl}
             </div>
             <button
               id="copy-mcp-url-btn"
               onClick={handleCopyMcpUrl}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#000000] font-bold text-xs transition cursor-pointer shrink-0"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-zinc-200 text-[#000000] font-bold text-xs transition cursor-pointer shrink-0"
             >
               {copiedUrl ? (
                 <>
@@ -241,7 +241,7 @@ export function ProfileTab() {
               </span>
               <button
                 onClick={handleCopyClaudeConfig}
-                className="text-[11px] text-[#7CE3B3] hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-[11px] text-zinc-300 hover:underline flex items-center gap-1 cursor-pointer"
               >
                 {copiedConfig ? '已複製 JSON' : '複製設定'}
               </button>
@@ -257,19 +257,19 @@ export function ProfileTab() {
             </span>
             <ul className="space-y-1.5 text-xs text-zinc-400 font-mono">
               <li className="flex items-center justify-between">
-                <span className="text-[#7CE3B3]">vocu.get_word_sets</span>
+                <span className="text-zinc-300">vocu.get_word_sets</span>
                 <span className="text-[11px] font-sans text-zinc-500">讀取單字集與字詞</span>
               </li>
               <li className="flex items-center justify-between">
-                <span className="text-[#7CE3B3]">vocu.get_weak_words</span>
+                <span className="text-zinc-300">vocu.get_weak_words</span>
                 <span className="text-[11px] font-sans text-zinc-500">取得錯題與權重佇列</span>
               </li>
               <li className="flex items-center justify-between">
-                <span className="text-[#7CE3B3]">vocu.check_question_hash</span>
+                <span className="text-zinc-300">vocu.check_question_hash</span>
                 <span className="text-[11px] font-sans text-zinc-500">驗證題幹是否已做過</span>
               </li>
               <li className="flex items-center justify-between">
-                <span className="text-[#7CE3B3]">vocu.push_quiz_items</span>
+                <span className="text-zinc-300">vocu.push_quiz_items</span>
                 <span className="text-[11px] font-sans text-zinc-500">寫入新生成的語境題目</span>
               </li>
             </ul>
@@ -281,7 +281,7 @@ export function ProfileTab() {
       <section className="bg-[#000000] border border-white/10 rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Database className="w-5 h-5 text-[#7CE3B3]" />
+            <Database className="w-5 h-5 text-zinc-300" />
             <div>
               <h2 className="text-lg font-bold text-white">資料與備份</h2>
               <p className="text-xs text-zinc-400">
@@ -295,7 +295,7 @@ export function ProfileTab() {
           <div
             className={`p-3.5 rounded-xl text-xs font-medium border ${
               backupMessage.type === 'success'
-                ? 'bg-[#7CE3B3]/15 border-[#7CE3B3]/40 text-[#7CE3B3]'
+                ? 'bg-white/10 border-white/20 text-zinc-300'
                 : 'bg-[#F472B6]/15 border-[#F472B6]/40 text-[#F472B6]'
             }`}
           >
@@ -307,7 +307,7 @@ export function ProfileTab() {
           <button
             id="export-json-btn"
             onClick={handleExportJson}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7CE3B3] hover:brightness-105 text-[#000000] font-bold text-xs transition cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-[#000000] font-bold text-xs transition cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>匯出 JSON 備份檔</span>
@@ -326,7 +326,7 @@ export function ProfileTab() {
             onClick={() => fileInputRef.current?.click()}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#000000] hover:bg-white/5 border border-white/15 text-xs font-semibold text-white transition cursor-pointer"
           >
-            <Upload className="w-4 h-4 text-[#7CE3B3]" />
+            <Upload className="w-4 h-4 text-zinc-300" />
             <span>從 JSON 檔案匯入還原</span>
           </button>
 
