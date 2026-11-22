@@ -343,13 +343,31 @@ export async function POST(req: NextRequest) {
         for (const q of mergedMap.values()) {
           if (!byType[q.type]) continue;
           if (q.type === 'word_bank_cloze') {
-            for (const ans of q.answers ?? []) {
-              const a = ans as unknown as { term?: string; word?: string; answer?: string };
-              const term = String(a.term || a.word || a.answer || '').trim();
-              if (term) {
-                const key = term.toLowerCase();
-                byType[q.type].set(key, (byType[q.type].get(key) ?? 0) + 1);
+            const extractedTerms = new Set<string>();
+            for (const opt of q.options ?? []) {
+              const raw = opt as unknown;
+              let t = '';
+              if (typeof raw === 'string') {
+                t = raw.replace(/^\(?[A-J]\)?[\.\s]*/i, '').trim();
+              } else if (raw && typeof raw === 'object') {
+                const obj = raw as Record<string, unknown>;
+                t = String(obj.term || obj.word || obj.text || obj.value || '').trim();
               }
+              if (t && !/^[A-J]$/i.test(t)) extractedTerms.add(t.toLowerCase());
+            }
+            for (const ans of q.answers ?? []) {
+              const raw = ans as unknown;
+              let t = '';
+              if (typeof raw === 'string') {
+                t = raw.replace(/^\(?[A-J]\)?[\.\s]*/i, '').trim();
+              } else if (raw && typeof raw === 'object') {
+                const obj = raw as Record<string, unknown>;
+                t = String(obj.term || obj.word || obj.answer || obj.text || obj.value || '').trim();
+              }
+              if (t && !/^[A-J]$/i.test(t)) extractedTerms.add(t.toLowerCase());
+            }
+            for (const key of extractedTerms) {
+              byType[q.type].set(key, (byType[q.type].get(key) ?? 0) + 1);
             }
           } else if ('targetTerm' in q && q.targetTerm) {
             const term = String(q.targetTerm).trim();
