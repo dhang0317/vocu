@@ -13,13 +13,13 @@ function VocuShell() {
   const { activeTab } = useVocu();
 
   return (
-    <div className="min-h-screen bg-[#0D110F] text-zinc-100 flex">
-      {/* Left Fixed Sidebar */}
+    <div className="min-h-screen bg-[#0D110F] text-zinc-100 flex flex-col">
+      {/* Top Centered Navigation Bar */}
       <Sidebar />
 
-      {/* Right Main Content Area (Centered max-width ~850px) */}
-      <main className="flex-1 md:pl-64">
-        <div className="max-w-[850px] mx-auto px-4 sm:px-8 pt-7 pb-16">
+      {/* Centered Main Content Area */}
+      <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 py-6">
+        <div className="w-full max-w-[850px] mx-auto">
           {activeTab === 'home' && <HomeTab />}
           {activeTab === 'history' && <HistoryTab />}
         </div>
