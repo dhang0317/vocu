@@ -344,7 +344,8 @@ export async function POST(req: NextRequest) {
           if (!byType[q.type]) continue;
           if (q.type === 'word_bank_cloze') {
             for (const ans of q.answers ?? []) {
-              const term = String(ans.term || '').trim();
+              const a = ans as unknown as { term?: string; word?: string; answer?: string };
+              const term = String(a.term || a.word || a.answer || '').trim();
               if (term) {
                 const key = term.toLowerCase();
                 byType[q.type].set(key, (byType[q.type].get(key) ?? 0) + 1);
