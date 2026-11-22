@@ -420,6 +420,22 @@ export async function POST(req: NextRequest) {
                 { headers: CORS_HEADERS }
               );
             }
+            if (
+              item.type === 'letter_hint_cloze' &&
+              (/\s+/.test(term) || String(item.pos || '').toLowerCase().includes('phr'))
+            ) {
+              return NextResponse.json(
+                {
+                  jsonrpc: '2.0',
+                  id,
+                  error: {
+                    code: -32602,
+                    message: `Pre-save validation failed (第 ${i + 1} 題): letter_hint_cloze（文意字彙）僅支援「單字」，不可推入多字片語（"${term}"），片語請改用 multiple_choice_cloze。`,
+                  },
+                },
+                { headers: CORS_HEADERS }
+              );
+            }
             if (item.type === 'multiple_choice_cloze') {
               const opts = Array.isArray(item.options) ? item.options : [];
               const validOpts = opts.filter((o) => {
