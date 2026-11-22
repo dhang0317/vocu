@@ -71,20 +71,38 @@ export function buildLetterHintQuizSession(params: {
     excludedDuplicateHashes: number;
   };
 } {
-  const { setId, quizBank, settings, questionCount = 9999 } = params;
+  const { setId, words, quizBank, settings, questionCount = 9999 } = params;
   const retiredHashes = new Set(
     Object.entries(settings.questionRatings || {})
       .filter(([, score]) => score >= 4)
       .map(([hash]) => hash)
   );
 
-  const candidates = quizBank.filter(
+  const setWords = setId === 'all' ? words : words.filter((w) => w.setId === setId);
+  const setWordIds = new Set(setWords.map((w) => w.id));
+  const setWordTerms = new Set(setWords.map((w) => String(w.term || '').trim().toLowerCase()));
+
+  let candidates = quizBank.filter(
     (q): q is LetterHintClozeQuiz =>
       q.type === 'letter_hint_cloze' &&
-      (setId === 'all' || q.setId === setId) &&
+      Boolean(
+        setId === 'all' ||
+          q.setId === setId ||
+          (q.wordId && setWordIds.has(q.wordId)) ||
+          (q.targetTerm && setWordTerms.has(q.targetTerm.trim().toLowerCase()))
+      ) &&
       !retiredHashes.has(q.questionHash) &&
       isCleanSingleSentence(q.sentence)
   );
+
+  if (candidates.length === 0) {
+    candidates = quizBank.filter(
+      (q): q is LetterHintClozeQuiz =>
+        q.type === 'letter_hint_cloze' &&
+        !retiredHashes.has(q.questionHash) &&
+        isCleanSingleSentence(q.sentence)
+    );
+  }
 
   const shuffled = [...candidates].sort(() => Math.random() - 0.5).slice(0, questionCount);
 
@@ -209,20 +227,38 @@ export function buildMultipleChoiceQuizSession(params: {
     excludedDuplicateHashes: number;
   };
 } {
-  const { setId, quizBank, settings, questionCount = 9999 } = params;
+  const { setId, words, quizBank, settings, questionCount = 9999 } = params;
   const retiredHashes = new Set(
     Object.entries(settings.questionRatings || {})
       .filter(([, score]) => score >= 4)
       .map(([hash]) => hash)
   );
 
-  const candidates = quizBank.filter(
+  const setWords = setId === 'all' ? words : words.filter((w) => w.setId === setId);
+  const setWordIds = new Set(setWords.map((w) => w.id));
+  const setWordTerms = new Set(setWords.map((w) => String(w.term || '').trim().toLowerCase()));
+
+  let candidates = quizBank.filter(
     (q): q is MultipleChoiceClozeQuiz =>
       q.type === 'multiple_choice_cloze' &&
-      (setId === 'all' || q.setId === setId) &&
+      Boolean(
+        setId === 'all' ||
+          q.setId === setId ||
+          (q.wordId && setWordIds.has(q.wordId)) ||
+          (q.targetTerm && setWordTerms.has(q.targetTerm.trim().toLowerCase()))
+      ) &&
       !retiredHashes.has(q.questionHash) &&
       isCleanSingleSentence(q.sentence)
   );
+
+  if (candidates.length === 0) {
+    candidates = quizBank.filter(
+      (q): q is MultipleChoiceClozeQuiz =>
+        q.type === 'multiple_choice_cloze' &&
+        !retiredHashes.has(q.questionHash) &&
+        isCleanSingleSentence(q.sentence)
+    );
+  }
 
   const shuffled = [...candidates].sort(() => Math.random() - 0.5).slice(0, questionCount);
 
