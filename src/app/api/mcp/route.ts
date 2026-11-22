@@ -336,7 +336,11 @@ export async function POST(req: NextRequest) {
           letter_hint_cloze: new Map(),
         };
 
-        for (const q of workspace.quizBank) {
+        const subQuizzes = await loadMcpQuizzesFromSubcollection();
+        const mergedMap = new Map<string, (typeof workspace.quizBank)[number]>();
+        [...workspace.quizBank, ...subQuizzes].forEach((q) => mergedMap.set(q.id, q));
+
+        for (const q of mergedMap.values()) {
           if (!byType[q.type]) continue;
           if (q.type === 'word_bank_cloze') {
             for (const ans of q.answers ?? []) {
