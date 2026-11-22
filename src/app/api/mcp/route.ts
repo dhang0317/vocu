@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
                   properties: {
                     setId: { type: 'string', description: '選填：指定單字集 ID' },
                     offset: { type: 'number', description: '選填：單字列表分頁起始位置，預設 0' },
-                    limit: { type: 'number', description: '選填：單字列表每頁筆數，預設 200，最大 500' },
+                    limit: { type: 'number', description: '選填：單字列表每頁筆數，預設 1000，最大 2000' },
                   },
                 },
               },
@@ -252,8 +252,8 @@ export async function POST(req: NextRequest) {
 
         const rawOffset = typeof args.offset === 'number' ? Math.floor(args.offset) : 0;
         const offset = Math.max(0, rawOffset);
-        const rawLimit = typeof args.limit === 'number' ? Math.floor(args.limit) : 200;
-        const limit = Math.min(500, Math.max(1, rawLimit));
+        const rawLimit = typeof args.limit === 'number' ? Math.floor(args.limit) : 1000;
+        const limit = Math.min(2000, Math.max(1, rawLimit));
         const pagedWords = allWords.slice(offset, offset + limit);
         const hasMore = offset + pagedWords.length < allWords.length;
         const nextOffset = hasMore ? offset + pagedWords.length : null;
@@ -266,20 +266,16 @@ export async function POST(req: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(
-                    {
-                      totalWordSets: setsWithCount.length,
-                      totalWords: allWords.length,
-                      offset,
-                      limit,
-                      hasMore,
-                      nextOffset,
-                      wordSets: setsWithCount,
-                      words: pagedWords,
-                    },
-                    null,
-                    2
-                  ),
+                  text: JSON.stringify({
+                    totalWordSets: setsWithCount.length,
+                    totalWords: allWords.length,
+                    offset,
+                    limit,
+                    hasMore,
+                    nextOffset,
+                    wordSets: setsWithCount,
+                    words: pagedWords,
+                  }),
                 },
               ],
             },
