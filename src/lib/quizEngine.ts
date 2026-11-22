@@ -238,9 +238,15 @@ export function buildMultipleChoiceQuizSession(params: {
   const setWordIds = new Set(setWords.map((w) => w.id));
   const setWordTerms = new Set(setWords.map((w) => String(w.term || '').trim().toLowerCase()));
 
+  const hasValid4Options = (q: MultipleChoiceClozeQuiz) =>
+    Array.isArray(q.options) &&
+    q.options.length === 4 &&
+    q.options.every((o) => o && typeof o.term === 'string' && o.term.trim() !== '' && o.term.trim() !== '.');
+
   let candidates = quizBank.filter(
     (q): q is MultipleChoiceClozeQuiz =>
       q.type === 'multiple_choice_cloze' &&
+      hasValid4Options(q) &&
       Boolean(
         setId === 'all' ||
           q.setId === setId ||
@@ -255,6 +261,7 @@ export function buildMultipleChoiceQuizSession(params: {
     candidates = quizBank.filter(
       (q): q is MultipleChoiceClozeQuiz =>
         q.type === 'multiple_choice_cloze' &&
+        hasValid4Options(q) &&
         !retiredHashes.has(q.questionHash) &&
         isCleanSingleSentence(q.sentence)
     );
