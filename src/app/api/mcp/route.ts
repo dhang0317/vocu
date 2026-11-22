@@ -100,12 +100,27 @@ export async function POST(req: NextRequest) {
               {
                 name: 'get_weak_words',
                 description:
-                  '讀取作答記錄並回傳「最少出題次數 (quizUsageCount) 優先、弱點優先」的單字佇列。出題時請設 limit 為 20~30，並只從 quizUsageCount === 0 的單字挑選（直到全單字集都出過一遍為止），切勿憑記憶抓字以免重複。',
+                  '讀取作答記錄並回傳「弱點優先」與「尚未測驗」的單字佇列，供 AI 助理出題',
                 inputSchema: {
                   type: 'object',
                   properties: {
                     setId: { type: 'string', description: '選填：指定單字集 ID' },
                     limit: { type: 'number', description: '回傳筆數上限，預設 10' },
+                  },
+                },
+              },
+              {
+                name: 'get_used_words',
+                description:
+                  '取得「已出字表」，依不同題型（word_bank_cloze、multiple_choice_cloze、letter_hint_cloze）分別列出目前題庫中已經出過的單字與次數，供 AI 助理出題時避開重複。',
+                inputSchema: {
+                  type: 'object',
+                  properties: {
+                    type: {
+                      type: 'string',
+                      enum: ['word_bank_cloze', 'multiple_choice_cloze', 'letter_hint_cloze'],
+                      description: '選填：只查詢特定題型的已出字表',
+                    },
                   },
                 },
               },
@@ -290,26 +305,10 @@ export async function POST(req: NextRequest) {
           ? workspace.words.filter((w) => w.setId === args.setId)
           : workspace.words;
 
-        const quizUsageMap = new Map<string, number>();
-        for (const q of workspace.quizBank) {
-          if (q.type === 'word_bank_cloze') {
-            for (const ans of q.answers ?? []) {
-              const key = String(ans.term || '').trim().toLowerCase();
-              if (key) quizUsageMap.set(key, (quizUsageMap.get(key) ?? 0) + 1);
-            }
-          } else if ('targetTerm' in q && q.targetTerm) {
-            const key = String(q.targetTerm).trim().toLowerCase();
-            if (key) quizUsageMap.set(key, (quizUsageMap.get(key) ?? 0) + 1);
-          }
-        }
-
         const cooldownThreshold = workspace.settings?.cooldownThreshold ?? 15;
         const analyzed = targetWords
-          .map((w) => ({
-            ...analyzeWordPriority(w, workspace.practiceLogs, cooldownThreshold),
-            quizUsageCount: quizUsageMap.get(w.term.trim().toLowerCase()) ?? 0,
-          }))
-          .sort((a, b) => a.quizUsageCount - b.quizUsageCount || a.priorityTier - b.priorityTier)
+          .map((w) => analyzeWordPriority(w, workspace.practiceLogs, cooldownThreshold))
+          .sort((a, b) => a.priorityTier - b.priorityTier)
           .slice(0, limit);
 
         return NextResponse.json(
@@ -323,6 +322,60 @@ export async function POST(req: NextRequest) {
                   text: JSON.stringify(analyzed, null, 2),
                 },
               ],
+            },
+          },
+          { headers: CORS_HEADERS }
+        );
+      }
+
+      if (toolName === 'get_used_words') {
+        const filterType = typeof args.type === 'string' ? args.type.trim() : '';
+        const byType: Record<string, Map<string, number>> = {
+          word_bank_cloze: new Map(),
+          multiple_choice_cloze: new Map(),
+          letter_hint_cloze: new Map(),
+        };
+
+        for (const q of workspace.quizBank) {
+          if (!byType[q.type]) continue;
+          if (q.type === 'word_bank_cloze') {
+            for (const ans of q.answers ?? []) {
+              const term = String(ans.term || '').trim();
+              if (term) {
+                const key = term.toLowerCase();
+                byType[q.type].set(key, (byType[q.type].get(key) ?? 0) + 1);
+              }
+            }
+          } else if ('targetTerm' in q && q.targetTerm) {
+            const term = String(q.targetTerm).trim();
+            if (term) {
+              const key = term.toLowerCase();
+              byType[q.type].set(key, (byType[q.type].get(key) ?? 0) + 1);
+            }
+          }
+        }
+
+        const formatMap = (m: Map<string, number>) => {
+          const entries = Array.from(m.entries())
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([term, count]) => ({ term, count }));
+          return { uniqueCount: entries.length, terms: entries };
+        };
+
+        const payload = filterType && byType[filterType]
+          ? { [filterType]: formatMap(byType[filterType]) }
+          : {
+              word_bank_cloze: formatMap(byType.word_bank_cloze),
+              multiple_choice_cloze: formatMap(byType.multiple_choice_cloze),
+              letter_hint_cloze: formatMap(byType.letter_hint_cloze),
+            };
+
+        return NextResponse.json(
+          {
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [{ type: 'text', text: JSON.stringify(payload) }],
             },
           },
           { headers: CORS_HEADERS }
