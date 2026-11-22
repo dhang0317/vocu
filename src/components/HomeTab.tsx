@@ -159,9 +159,6 @@ export function HomeTab() {
 
         {/* 題型選擇器 */}
         <div>
-          <label className="block text-xs font-semibold text-zinc-300 mb-2.5">
-            選擇練習題型（全程作答完畢交卷後才統一公佈答案與解析）
-          </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <button
               id="select-type-word-bank"
