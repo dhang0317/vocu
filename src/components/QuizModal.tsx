@@ -356,24 +356,7 @@ export function QuizModal() {
       <div className="fixed inset-0 z-50 bg-[#000000] overflow-y-auto">
         <div className="max-w-[850px] mx-auto px-4 py-6 sm:py-10 space-y-6">
           {/* Top Bar */}
-          <div className="flex items-center justify-between gap-4 bg-[#000000] border border-white/10 rounded-2xl px-5 py-4">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#52B788] text-[#000000]">
-                  題型一：文意選填 (Word Bank Cloze)
-                </span>
-                <span className="text-xs text-zinc-400">
-                  {currentSet ? currentSet.title : '跨單字集綜合測驗'}
-                </span>
-                <span className="text-[11px] font-mono text-zinc-500">
-                  ({quiz.questionHash})
-                </span>
-              </div>
-              <h2 className="text-base sm:text-lg font-bold text-white mt-1">
-                {quiz.title}
-              </h2>
-            </div>
-
+          <div className="flex items-center justify-end">
             <button
               onClick={closeQuiz}
               className="p-2 rounded-xl bg-[#000000] hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition cursor-pointer"
@@ -384,28 +367,7 @@ export function QuizModal() {
           </div>
 
           {/* 互動短文區 */}
-          <div className="bg-[#000000] border border-white/10 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between text-xs text-zinc-400">
-              <span>
-                {!isSubmitted ? (
-                  <>
-                    點擊文章空格使其高亮（目前選中{' '}
-                    <strong className="text-[#52B788]">
-                      第 ({activeBlankNumber}) 格
-                    </strong>
-                    ），再點擊下方 (A)～(J) 選項填入；點擊已填空格可取消重選
-                  </>
-                ) : (
-                  <strong className="text-[#52B788]">
-                    已交卷批改完成：答對 {correctCount} / 10 格（作答結果已寫入「記錄」）
-                  </strong>
-                )}
-              </span>
-              <span className="font-semibold text-white shrink-0">
-                已填 {filledCount} / 10 格
-              </span>
-            </div>
-
+          <div className="bg-[#000000] border border-white/10 rounded-2xl p-6">
             <div className="p-5 rounded-2xl bg-[#000000] border border-white/10 text-base text-zinc-100 leading-[2.35] tracking-wide">
               {renderInteractivePassage()}
             </div>
