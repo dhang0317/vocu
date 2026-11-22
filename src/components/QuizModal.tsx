@@ -762,9 +762,9 @@ export function QuizModal() {
                         'bg-[#000000] border-white/10 text-zinc-200 hover:border-[#52B788]/60 hover:bg-white/[0.03]';
                       if (isAnswered) {
                         if (isCorrectOpt) {
-                          optStyle = 'bg-[#52B788] border-[#52B788] text-[#000000] font-bold';
+                          optStyle = 'bg-[#000000] border-[#52B788] text-[#52B788] font-bold';
                         } else if (isSelected && !isCorrectOpt) {
-                          optStyle = 'bg-[#EF4444] border-[#EF4444] text-white font-bold';
+                          optStyle = 'bg-[#000000] border-[#EF4444] text-[#EF4444] font-bold';
                         } else {
                           optStyle = 'bg-[#000000] border-white/10 text-zinc-500';
                         }
