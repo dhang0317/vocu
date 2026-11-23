@@ -13,11 +13,14 @@ import {
   ArrowRight,
   Plus,
   ListChecks,
+  Upload,
+  X,
 } from 'lucide-react';
 import { useVocu } from '@/context/VocuContext';
 import { QuestionType } from '@/types/vocu';
 import { SetIcon } from './SetIcon';
 import { analyzeWordPriority } from '@/lib/quizEngine';
+import { parseVocabText, extractTextFromPdfFile } from '@/lib/vocabFileParser';
 
 export function HomeTab() {
   const {
@@ -31,10 +34,71 @@ export function HomeTab() {
     startQuiz,
     isCloudReady,
     setActiveTab,
+    addWordSet,
+    batchImportWords,
   } = useVocu();
 
   const [selectedQuestionType, setSelectedQuestionType] =
     useState<QuestionType>('word_bank_cloze');
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importTargetSetId, setImportTargetSetId] = useState<string>('');
+  const [newSetName, setNewSetName] = useState('');
+  const [importText, setImportText] = useState('');
+  const [importFeedback, setImportFeedback] = useState<string | null>(null);
+
+  const handleHomeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setImportFeedback(`正在解析 ${file.name}...`);
+    try {
+      const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+      const extractedText = isPdf ? await extractTextFromPdfFile(file) : await file.text();
+      const preview = parseVocabText(extractedText);
+      setImportText(extractedText);
+      if (preview.length > 0) {
+        setImportFeedback(`已從 ${file.name} 辨識出 ${preview.length} 筆單字／片語，請確認後點擊「確認匯入」。`);
+      } else {
+        setImportFeedback(`已讀取 ${file.name}，但未自動偵測到單字格式，可手動微調後匯入。`);
+      }
+    } catch (err) {
+      setImportFeedback(`檔案解析失敗：${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+
+  const handleHomeImportSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsedItems = parseVocabText(importText);
+    if (parsedItems.length === 0) {
+      setImportFeedback('無法辨識出「英文單字 + 中文釋義」，請確認內容格式。');
+      return;
+    }
+
+    let targetId = importTargetSetId || recentSetId || wordSets[0]?.id || '';
+    if (importTargetSetId === '__new__') {
+      const title = newSetName.trim();
+      if (!title) {
+        setImportFeedback('請輸入新單字集名稱。');
+        return;
+      }
+      const created = addWordSet({ title, color: '#FFFFFF', icon: 'book' });
+      targetId = created.id;
+      setRecentSetId(created.id);
+    }
+
+    const count = batchImportWords(targetId, parsedItems);
+    if (count > 0) {
+      setImportFeedback(`成功匯入 ${count} 筆單字／片語！`);
+      setImportText('');
+      setNewSetName('');
+      setTimeout(() => {
+        setImportFeedback(null);
+        setIsImportOpen(false);
+      }, 1100);
+    } else {
+      setImportFeedback('匯入失敗，請檢查內容格式。');
+    }
+  };
 
   // 動態問候語（早安 / 午安 / 晚安）
   const greeting = useMemo(() => {
@@ -113,6 +177,20 @@ export function HomeTab() {
     <div className="space-y-6 pb-24">
       {/* 3. 快速開始區 */}
       <section className="bg-[#000000] border border-white/10 rounded-2xl p-6 space-y-6">
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => {
+              setImportTargetSetId(currentSet?.id || wordSets[0]?.id || '__new__');
+              setImportFeedback(null);
+              setIsImportOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#000000] hover:bg-white/5 border border-white/15 text-xs font-medium text-zinc-200 transition cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5 text-zinc-300" />
+            <span>匯入單字（PDF / TXT / CSV）</span>
+          </button>
+        </div>
 
         {/* 最近使用的單字集選擇卡片 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -297,6 +375,92 @@ export function HomeTab() {
           </button>
         </div>
       </section>
+
+      {isImportOpen && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#000000] border border-white/15 rounded-2xl max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-white">匯入單字與片語</h3>
+              <button
+                type="button"
+                onClick={() => setIsImportOpen(false)}
+                className="text-zinc-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs text-zinc-400">目標單字集</label>
+              <select
+                value={importTargetSetId}
+                onChange={(e) => setImportTargetSetId(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-xs text-white focus:outline-none focus:border-white/50"
+              >
+                {wordSets.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.title}
+                  </option>
+                ))}
+                <option value="__new__">+ 建立新單字集...</option>
+              </select>
+              {importTargetSetId === '__new__' && (
+                <input
+                  type="text"
+                  value={newSetName}
+                  onChange={(e) => setNewSetName(e.target.value)}
+                  placeholder="輸入新單字集名稱（例如：高三模擬考單字）"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#000000] border border-white/15 text-xs text-white focus:outline-none focus:border-white/50"
+                />
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                支援直接上傳檔案，或貼上多種格式（<code className="text-zinc-300">|</code>、逗號、Tab、編號清單、<code className="text-zinc-300">單字 (詞性) 中文</code> 等）：
+              </p>
+              <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white cursor-pointer transition">
+                <Upload className="w-3.5 h-3.5" />
+                <span>選擇檔案（PDF / TXT / CSV）</span>
+                <input
+                  type="file"
+                  accept=".pdf,.txt,.csv,.tsv,.md,application/pdf,text/plain,text/csv"
+                  onChange={handleHomeFileUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            <form onSubmit={handleHomeImportSubmit} className="space-y-4">
+              <textarea
+                rows={6}
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                placeholder={`meticulous | adj. | 一絲不苟的；極為謹慎的\nmake ends meet | phr. | 使收支相抵；勉強維持生計\nbreakthrough | n. | 重大突破`}
+                className="w-full p-3.5 rounded-xl bg-[#000000] border border-white/15 text-xs font-mono text-white focus:outline-none focus:border-white/50"
+              />
+              {importFeedback && (
+                <p className="text-xs text-zinc-300 font-medium">{importFeedback}</p>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsImportOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-[#000000] text-xs text-zinc-400 hover:text-white cursor-pointer"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-white text-[#000000] text-xs font-bold hover:bg-zinc-200 cursor-pointer"
+                >
+                  確認匯入
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
