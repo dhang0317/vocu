@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { db } from './firebase';
 import { WordSet, WordItem, PracticeLog, QuizItem, UserSettings } from '@/types/vocu';
 
@@ -65,16 +65,16 @@ export async function saveMcpQuizzesToSubcollection(
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const colRef = collection(db, WORKSPACE_COLLECTION, DEFAULT_DOC_ID, 'quizzes');
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Firestore subcollection write timeout (10s)')), 10000)
-    );
-    const writes = Promise.all(
-      items.map((item) => {
+    const CHUNK_SIZE = 450;
+    for (let i = 0; i < items.length; i += CHUNK_SIZE) {
+      const chunk = items.slice(i, i + CHUNK_SIZE);
+      const batch = writeBatch(db);
+      for (const item of chunk) {
         const cleanItem = JSON.parse(JSON.stringify(item));
-        return setDoc(doc(colRef, item.id), cleanItem, { merge: true });
-      })
-    );
-    await Promise.race([writes, timeoutPromise]);
+        batch.set(doc(colRef, item.id), cleanItem, { merge: true });
+      }
+      await batch.commit();
+    }
     return { ok: true };
   } catch (err) {
     console.error('Firestore subcollection save error:', err);

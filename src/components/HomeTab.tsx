@@ -115,7 +115,10 @@ export function HomeTab() {
 
             const baseItem: Record<string, unknown> = {
               ...raw,
-              id: String(raw.id || `quiz-import-${Date.now()}-${idx}`),
+              id:
+                typeof raw.id === 'string' && raw.id.trim()
+                  ? raw.id.trim()
+                  : `quiz-import-${Date.now()}-${idx}`,
               setId: targetId,
               type: inferredType,
               createdAt: String(raw.createdAt || new Date().toISOString()),
