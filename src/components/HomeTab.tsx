@@ -42,6 +42,7 @@ export function HomeTab() {
   const [selectedQuestionType, setSelectedQuestionType] =
     useState<QuestionType>('word_bank_cloze');
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importMode, setImportMode] = useState<'words' | 'quizzes'>('words');
   const [importTargetSetId, setImportTargetSetId] = useState<string>('');
   const [newSetName, setNewSetName] = useState('');
   const [importText, setImportText] = useState('');
@@ -248,18 +249,34 @@ export function HomeTab() {
     <div className="space-y-6 pb-24">
       {/* 3. 快速開始區 */}
       <section className="bg-[#000000] border border-white/10 rounded-2xl p-6 space-y-6">
-        <div className="flex items-center justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <button
             type="button"
             onClick={() => {
+              setImportMode('words');
               setImportTargetSetId(currentSet?.id || wordSets[0]?.id || '__new__');
+              setImportText('');
               setImportFeedback(null);
               setIsImportOpen(true);
             }}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#000000] hover:bg-white/5 border border-white/15 text-xs font-medium text-zinc-200 transition cursor-pointer"
           >
             <Upload className="w-3.5 h-3.5 text-zinc-300" />
-            <span>匯入單字（PDF / TXT / CSV）</span>
+            <span>匯入單字庫（PDF / TXT / CSV）</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setImportMode('quizzes');
+              setImportTargetSetId(currentSet?.id || wordSets[0]?.id || '__new__');
+              setImportText('');
+              setImportFeedback(null);
+              setIsImportOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#000000] hover:bg-white/5 border border-white/15 text-xs font-medium text-zinc-200 transition cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5 text-zinc-300" />
+            <span>匯入題目庫（JSON）</span>
           </button>
         </div>
 
@@ -451,7 +468,9 @@ export function HomeTab() {
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#000000] border border-white/15 rounded-2xl max-w-lg w-full p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-white">匯入單字與片語</h3>
+              <h3 className="text-base font-bold text-white">
+                {importMode === 'words' ? '匯入單字庫' : '匯入題目庫'}
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsImportOpen(false)}
@@ -488,14 +507,28 @@ export function HomeTab() {
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs text-zinc-400 leading-relaxed">
-                支援直接上傳檔案，或貼上多種格式（<code className="text-zinc-300">|</code>、逗號、Tab、編號清單、<code className="text-zinc-300">單字 (詞性) 中文</code> 等）：
+                {importMode === 'words' ? (
+                  <>
+                    支援直接上傳檔案，或貼上多種格式（<code className="text-zinc-300">|</code>、逗號、Tab、編號清單、<code className="text-zinc-300">單字 (詞性) 中文</code> 等）：
+                  </>
+                ) : (
+                  <>請上傳或貼上 JSON 題庫檔（支援單句克漏字、文意字彙、文意選填）：</>
+                )}
               </p>
               <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white cursor-pointer transition">
                 <Upload className="w-3.5 h-3.5" />
-                <span>選擇檔案（PDF / TXT / CSV / JSON）</span>
+                <span>
+                  {importMode === 'words'
+                    ? '選擇檔案（PDF / TXT / CSV）'
+                    : '選擇檔案（JSON）'}
+                </span>
                 <input
                   type="file"
-                  accept=".pdf,.txt,.csv,.tsv,.md,.json,application/pdf,application/json,text/plain,text/csv"
+                  accept={
+                    importMode === 'words'
+                      ? '.pdf,.txt,.csv,.tsv,.md,application/pdf,text/plain,text/csv'
+                      : '.json,application/json'
+                  }
                   onChange={handleHomeFileUpload}
                   className="hidden"
                 />
