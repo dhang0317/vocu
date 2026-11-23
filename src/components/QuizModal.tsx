@@ -748,21 +748,26 @@ export function QuizModal() {
                         </div>
 
                   <p className="text-base text-zinc-100 leading-relaxed">
-                    {parts[0]}
-                    <span
-                      className={`inline-block mx-1.5 px-4 py-0.5 rounded-lg bg-[#000000] border font-mono font-bold ${
-                        !isAnswered
-                          ? 'border-white/25 text-zinc-200'
-                          : isCorrect
-                            ? 'border-[#52B788] text-[#52B788]'
-                            : 'border-[#F472B6] text-[#F472B6]'
-                      }`}
-                    >
-                      {chosenLabel
-                        ? q.options.find((o) => o.label === chosenLabel)?.term || '________'
-                        : '________'}
-                    </span>
-                    {parts[1]}
+                    {parts.map((part, pIdx) => (
+                      <React.Fragment key={pIdx}>
+                        {part}
+                        {pIdx < parts.length - 1 && (
+                          <span
+                            className={`inline-block mx-1.5 px-4 py-0.5 rounded-lg bg-[#000000] border font-mono font-bold ${
+                              !isAnswered
+                                ? 'border-white/25 text-zinc-200'
+                                : isCorrect
+                                  ? 'border-[#52B788] text-[#52B788]'
+                                  : 'border-[#F472B6] text-[#F472B6]'
+                            }`}
+                          >
+                            {chosenLabel
+                              ? q.options.find((o) => o.label === chosenLabel)?.term || '________'
+                              : '________'}
+                          </span>
+                        )}
+                      </React.Fragment>
+                    ))}
                   </p>
 
                   <div className="space-y-2.5">
