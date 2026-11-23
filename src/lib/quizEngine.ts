@@ -94,12 +94,7 @@ export function buildLetterHintQuizSession(params: {
   let candidates = quizBank.filter(
     (q): q is LetterHintClozeQuiz =>
       q.type === 'letter_hint_cloze' &&
-      Boolean(
-        setId === 'all' ||
-          q.setId === setId ||
-          (q.wordId && setWordIds.has(q.wordId)) ||
-          (q.targetTerm && setWordTerms.has(q.targetTerm.trim().toLowerCase()))
-      ) &&
+      (setId === 'all' || q.setId === setId) &&
       !retiredHashes.has(q.questionHash) &&
       isCleanSingleSentence(q.sentence) &&
       isSingleWordTerm(q.targetTerm, q.pos)
@@ -258,12 +253,7 @@ export function buildMultipleChoiceQuizSession(params: {
     (q): q is MultipleChoiceClozeQuiz =>
       q.type === 'multiple_choice_cloze' &&
       hasValid4Options(q) &&
-      Boolean(
-        setId === 'all' ||
-          q.setId === setId ||
-          (q.wordId && setWordIds.has(q.wordId)) ||
-          (q.targetTerm && setWordTerms.has(q.targetTerm.trim().toLowerCase()))
-      ) &&
+      (setId === 'all' || q.setId === setId) &&
       !retiredHashes.has(q.questionHash) &&
       isCleanSingleSentence(q.sentence)
   );
