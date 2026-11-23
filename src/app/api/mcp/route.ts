@@ -200,6 +200,21 @@ export async function POST(req: NextRequest) {
                 },
               },
               {
+                name: 'delete_word_set',
+                description:
+                  '刪除指定的 Vocu 單字集卡片（支援傳入 setId 或單字集名稱），並同步清除該單字集底下的所有單字與題目',
+                inputSchema: {
+                  type: 'object',
+                  properties: {
+                    setId: {
+                      type: 'string',
+                      description: '要刪除的單字集 ID 或名稱（例如：第六課）',
+                    },
+                  },
+                  required: ['setId'],
+                },
+              },
+              {
                 name: 'delete_quiz_items',
                 description: '刪除已上傳至 Vocu Firestore 題庫的指定題目（可傳入 quizIds 陣列）',
                 inputSchema: {
@@ -985,6 +1000,88 @@ export async function POST(req: NextRequest) {
                 {
                   type: 'text',
                   text: `已成功從題庫刪除 ${quizIds.length} 筆題目。`,
+                },
+              ],
+            },
+          },
+          { headers: CORS_HEADERS }
+        );
+      }
+
+      if (toolName === 'delete_word_set') {
+        const rawKey = String(args.setId || '').trim();
+        if (!rawKey) {
+          return NextResponse.json(
+            {
+              jsonrpc: '2.0',
+              id,
+              error: { code: -32602, message: '請提供要刪除的 setId 或單字集名稱' },
+            },
+            { headers: CORS_HEADERS }
+          );
+        }
+
+        const targetSet = workspace.wordSets.find(
+          (s) => s.id === rawKey || s.title.trim().toLowerCase() === rawKey.toLowerCase()
+        );
+        if (!targetSet) {
+          return NextResponse.json(
+            {
+              jsonrpc: '2.0',
+              id,
+              error: { code: -32602, message: `找不到單字集：${rawKey}` },
+            },
+            { headers: CORS_HEADERS }
+          );
+        }
+
+        const removedWordsCount = workspace.words.filter((w) => w.setId === targetSet.id).length;
+        const removedMainQuizzesCount = workspace.quizBank.filter(
+          (q) => q.setId === targetSet.id
+        ).length;
+
+        const subQuizzes = await loadMcpQuizzesFromSubcollection();
+        const subQuizIdsToDelete = subQuizzes
+          .filter((q) => q.setId === targetSet.id)
+          .map((q) => q.id);
+        if (subQuizIdsToDelete.length > 0) {
+          await deleteMcpQuizzesFromSubcollection(subQuizIdsToDelete);
+        }
+
+        const updatedWorkspace = {
+          ...workspace,
+          wordSets: workspace.wordSets.filter((s) => s.id !== targetSet.id),
+          words: workspace.words.filter((w) => w.setId !== targetSet.id),
+          quizBank: workspace.quizBank.filter((q) => q.setId !== targetSet.id),
+          updatedAt: new Date().toISOString(),
+        };
+
+        const saveRes = await saveWorkspaceToFirestore(updatedWorkspace);
+        if (!saveRes.ok) {
+          return NextResponse.json(
+            {
+              jsonrpc: '2.0',
+              id,
+              error: { code: -32603, message: `刪除單字集失敗: ${saveRes.error}` },
+            },
+            { headers: CORS_HEADERS }
+          );
+        }
+
+        return NextResponse.json(
+          {
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify({
+                    deletedSetId: targetSet.id,
+                    deletedSetTitle: targetSet.title,
+                    removedWordsCount,
+                    removedQuizzesCount: removedMainQuizzesCount + subQuizIdsToDelete.length,
+                  }),
                 },
               ],
             },
