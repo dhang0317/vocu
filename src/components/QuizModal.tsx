@@ -733,8 +733,21 @@ export function QuizModal() {
                           </span>
                         )}
                       </div>
-                      {q.explanation && (
+                      {q.explanation ? (
                         <p className="text-xs text-zinc-300 leading-relaxed">{q.explanation}</p>
+                      ) : (
+                        <p className="text-xs text-zinc-300 leading-relaxed">
+                          {q.options
+                            .map((o) => {
+                              const matched = words.find(
+                                (w) => w.term.trim().toLowerCase() === o.term.trim().toLowerCase()
+                              );
+                              return matched?.definition
+                                ? `${o.term}（${matched.pos ? `${matched.pos} ` : ''}${matched.definition}）`
+                                : o.term;
+                            })
+                            .join('；')}
+                        </p>
                       )}
                     </div>
                   )}

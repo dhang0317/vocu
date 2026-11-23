@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
               {
                 name: 'push_quiz_items',
                 description:
-                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（不限單次題數）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title、passage 含 (1) ______ ~ (10) ______、options 長度必須剛好為 10、answers 長度必須剛好為 10）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}、options 長度必須剛好為 4、correctLabel、targetTerm，僅限單字不可為片語）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}、targetTerm、pos、chineseHint，僅限單字不可為片語）。重要：word_bank_cloze 與 multiple_choice_cloze 的所有選項皆必須來自目標單字集（setId）內的單字，不可使用單字集以外的字作為干擾選項。出題規範：避免在同一題（或同一篇文意選填）中同時放入兩個詞性相同且語意高度重疊的近義詞（如 stunning 與 incredible），除非句子中存在明確的語法差異（如冠詞 a/an）或固定搭配（Collocation），並在 explanation 解析中特別標註該語法或搭配線索，確保每格答案皆唯一且無爭議。',
+                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（不限單次題數）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title、passage 含 (1) ______ ~ (10) ______、options 長度必須剛好為 10、answers 長度必須剛好為 10，且每格 answer 必填 explanation 中文翻譯與解析）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}、options 長度必須剛好為 4、correctLabel、targetTerm，且必填 explanation 包含整句中文翻譯與四個選項的中文釋義）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}、targetTerm、pos、chineseHint，且必填 explanation 包含整句中文翻譯與解析，僅限單字不可為片語）。重要：word_bank_cloze 與 multiple_choice_cloze 的所有選項皆必須來自目標單字集（setId）內的單字，不可使用單字集以外的字作為干擾選項。出題規範：避免在同一題（或同一篇文意選填）中同時放入兩個詞性相同且語意高度重疊的近義詞（如 stunning 與 incredible），除非句子中存在明確的語法差異（如冠詞 a/an）或固定搭配（Collocation），並在 explanation 解析中特別標註該語法或搭配線索，確保每格答案皆唯一且無爭議。',
                 inputSchema: {
                   type: 'object',
                   properties: {
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
                     items: {
                       type: 'array',
                       description:
-                        '符合 Vocu QuizItem 格式的題目陣列。注意：word_bank_cloze 的 options 與 answers 陣列長度必須皆剛好為 10（A–J），multiple_choice_cloze 的 options 必須剛好為 4 筆，且所有選項都必須是目標單字集內的單字；同一題內請避免放入可互換的同詞性近義詞（若以 a/an 或固定搭配區分，請在 explanation 中註明線索）。',
+                        '符合 Vocu QuizItem 格式的題目陣列。注意：1) 每題（或 word_bank_cloze 的每個 answers[i]）都必須提供非空的 explanation 中文翻譯與選項中文釋義，否則會被驗證擋下；2) word_bank_cloze 的 options 與 answers 陣列長度必須皆剛好為 10（A–J），multiple_choice_cloze 的 options 必須剛好為 4 筆，且所有選項都必須是目標單字集內的單字；3) 同一題內請避免放入可互換的同詞性近義詞。',
                       items: { type: 'object' },
                     },
                   },
@@ -567,6 +567,20 @@ export async function POST(req: NextRequest) {
               const bNum = Number(aObj.blankNumber || aObj.blank_index || 0);
               const aLetter = String(aObj.optionLetter || aObj.letter || aObj.answer || '').replace(/[()]/g, '').toUpperCase().slice(0, 1);
               const aTerm = String(aObj.term || aObj.word || aObj.text || '').replace(/^(?:\([A-J]\)\s*|[A-J][\.\)\:]\s*|[A-J]\s+)/i, '').trim().toLowerCase();
+              const aExplanation = String(aObj.explanation || '').trim();
+              if (!aExplanation) {
+                return NextResponse.json(
+                  {
+                    jsonrpc: '2.0',
+                    id,
+                    error: {
+                      code: -32602,
+                      message: `Pre-save validation failed (第 ${i + 1} 題 第 ${bNum} 格): 缺少 explanation 中文翻譯與解析，請為每一格提供完整中文說明。`,
+                    },
+                  },
+                  { headers: CORS_HEADERS }
+                );
+              }
               const optTermForLetter = optMapByLetter.get(aLetter);
               if (aTerm && optTermForLetter && aTerm !== optTermForLetter) {
                 return NextResponse.json(
@@ -584,6 +598,20 @@ export async function POST(req: NextRequest) {
             }
           } else {
             // 單句題型 (letter_hint_cloze / multiple_choice_cloze) 嚴格校驗
+            const explanation = String(item.explanation || '').trim();
+            if (!explanation) {
+              return NextResponse.json(
+                {
+                  jsonrpc: '2.0',
+                  id,
+                  error: {
+                    code: -32602,
+                    message: `Pre-save validation failed (第 ${i + 1} 題): 缺少 explanation 欄位，請提供整句中文翻譯與各選項中文釋義。`,
+                  },
+                },
+                { headers: CORS_HEADERS }
+              );
+            }
             const term = String(item.targetTerm || '').trim();
             if (!term || /^\d+$/.test(term)) {
               return NextResponse.json(
