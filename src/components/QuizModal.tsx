@@ -616,7 +616,7 @@ export function QuizModal() {
     };
 
     return (
-      <div className="fixed inset-0 z-50 bg-[#000000] overflow-y-auto pt-10 sm:pt-16 px-4 pb-10">
+      <div className="fixed inset-0 z-50 bg-[#000000] overflow-y-auto pt-3 sm:pt-5 px-4 pb-6">
         <div className={`w-full mx-auto space-y-4 ${mcTwoColumn ? 'max-w-[1200px]' : 'max-w-[760px]'}`}>
           <div className="flex items-center justify-end gap-2">
             <button
