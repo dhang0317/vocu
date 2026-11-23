@@ -11,6 +11,7 @@ import {
   History,
   HelpCircle,
   AlertTriangle,
+  Columns2,
 } from 'lucide-react';
 import { useVocu } from '@/context/VocuContext';
 import {
@@ -75,6 +76,7 @@ export function QuizModal() {
   // 單句克漏字 (Multiple Choice Cloze) 狀態：quiz.id -> 'A' | 'B' | 'C' | 'D'
   const [mcSelections, setMcSelections] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
   const [mcCurrentIndex, setMcCurrentIndex] = useState(0);
+  const [mcTwoColumn, setMcTwoColumn] = useState(false);
 
   // 文意字彙 (Letter Hint Cloze) 單題即時批改狀態
   const [lhCurrentIndex, setLhCurrentIndex] = useState(0);
@@ -613,9 +615,22 @@ export function QuizModal() {
     };
 
     return (
-      <div className="fixed inset-0 z-50 bg-[#000000] overflow-hidden touch-none pt-10 sm:pt-16 px-4">
-        <div className="w-full max-w-[760px] mx-auto space-y-4">
+      <div className="fixed inset-0 z-50 bg-[#000000] overflow-y-auto pt-10 sm:pt-16 px-4 pb-10">
+        <div className={`w-full mx-auto space-y-4 ${mcTwoColumn ? 'max-w-[1200px]' : 'max-w-[760px]'}`}>
           <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setMcTwoColumn((v) => !v)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${
+                mcTwoColumn
+                  ? 'bg-white text-[#000000] border-white'
+                  : 'bg-[#000000] text-zinc-300 border-white/15 hover:border-white/40'
+              }`}
+              title="切換單題 / 雙題並排顯示"
+            >
+              <Columns2 className="w-3.5 h-3.5" />
+              <span>{mcTwoColumn ? '雙題並排' : '單題'}</span>
+            </button>
             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#F472B6]/20 text-[#F472B6]">
               ✗ {wrongMcCount}
             </span>
@@ -641,32 +656,50 @@ export function QuizModal() {
           </div>
 
           {(() => {
-            const q = questions[mcCurrentIndex];
-            if (!q) return null;
-            const chosenLabel = mcSelections[String(mcCurrentIndex)];
-            const isAnswered = Boolean(chosenLabel);
-            const isCorrect = isAnswered && chosenLabel === q.correctLabel;
-            const parts = (q.sentence || '').split('{{BLANK}}');
-            const isLastQuestion = mcCurrentIndex >= questions.length - 1;
+            const visibleIndices =
+              mcTwoColumn && mcCurrentIndex + 1 < questions.length
+                ? [mcCurrentIndex, mcCurrentIndex + 1]
+                : [mcCurrentIndex];
+            const lastVisibleIdx = visibleIndices[visibleIndices.length - 1];
+            const isAllVisibleAnswered = visibleIndices.every((idx) =>
+              Boolean(mcSelections[String(idx)])
+            );
+            const isLastQuestion = lastVisibleIdx >= questions.length - 1;
 
             return (
               <div className="space-y-4">
                 <div
-                  key={q.id}
-                  className={`bg-[#000000] border rounded-2xl p-6 space-y-4 transition ${
-                    !isAnswered
-                      ? 'border-white/10'
-                      : isCorrect
-                        ? 'border-[#52B788]/50'
-                        : 'border-[#F472B6]/50'
-                  }`}
+                  className={
+                    mcTwoColumn
+                      ? 'grid grid-cols-1 md:grid-cols-2 gap-4 items-start'
+                      : 'space-y-4'
+                  }
                 >
-                  <div className="flex items-center justify-between text-xs text-zinc-400">
-                    <span className="font-bold text-white">
-                      第 {mcCurrentIndex + 1} / {questions.length} 題
-                    </span>
-                    <span className="font-mono text-zinc-500">{q.questionHash}</span>
-                  </div>
+                  {visibleIndices.map((qIdx) => {
+                    const q = questions[qIdx];
+                    if (!q) return null;
+                    const chosenLabel = mcSelections[String(qIdx)];
+                    const isAnswered = Boolean(chosenLabel);
+                    const isCorrect = isAnswered && chosenLabel === q.correctLabel;
+                    const parts = (q.sentence || '').split('{{BLANK}}');
+
+                    return (
+                      <div
+                        key={q.id}
+                        className={`bg-[#000000] border rounded-2xl p-6 space-y-4 transition ${
+                          !isAnswered
+                            ? 'border-white/10'
+                            : isCorrect
+                              ? 'border-[#52B788]/50'
+                              : 'border-[#F472B6]/50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between text-xs text-zinc-400">
+                          <span className="font-bold text-white">
+                            第 {qIdx + 1} / {questions.length} 題
+                          </span>
+                          <span className="font-mono text-zinc-500">{q.questionHash}</span>
+                        </div>
 
                   <p className="text-base text-zinc-100 leading-relaxed">
                     {parts[0]}
@@ -708,7 +741,7 @@ export function QuizModal() {
                           key={opt.label}
                           type="button"
                           disabled={isAnswered}
-                          onClick={() => handleSelectMcOption(mcCurrentIndex, q, opt.label)}
+                          onClick={() => handleSelectMcOption(qIdx, q, opt.label)}
                           className={`w-full text-left px-4 py-3.5 rounded-xl border text-sm transition flex items-center gap-3 ${
                             isAnswered ? 'cursor-default' : 'cursor-pointer'
                           } ${optStyle}`}
@@ -751,23 +784,24 @@ export function QuizModal() {
                       )}
                     </div>
                   )}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* 作答後顯示「下一題」或「本回合成績」 */}
-                {isAnswered && !isLastQuestion && (
+                {/* 作答後顯示「下一題 / 下一組」或「本回合成績」 */}
+                {isAllVisibleAnswered && !isLastQuestion && (
                   <button
                     type="button"
                     onClick={() => {
-                      const nextUnansweredIdx = questions.findIndex(
-                        (item, idx) => idx > mcCurrentIndex && !mcSelections[item.id]
-                      );
-                      setMcCurrentIndex(
-                        nextUnansweredIdx !== -1 ? nextUnansweredIdx : mcCurrentIndex + 1
-                      );
+                      const step = mcTwoColumn ? 2 : 1;
+                      setMcCurrentIndex(Math.min(questions.length - 1, mcCurrentIndex + step));
                     }}
                     className="w-full py-3.5 rounded-2xl bg-white hover:bg-zinc-200 text-[#000000] font-bold text-sm transition cursor-pointer"
                   >
-                    下一題（{mcCurrentIndex + 2} / {questions.length}）→
+                    {mcTwoColumn
+                      ? `下一組（第 ${lastVisibleIdx + 2} 題起 / ${questions.length}）→`
+                      : `下一題（${mcCurrentIndex + 2} / ${questions.length}）→`}
                   </button>
                 )}
 
