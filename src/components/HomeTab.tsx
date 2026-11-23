@@ -36,7 +36,7 @@ export function HomeTab() {
     setActiveTab,
     addWordSet,
     batchImportWords,
-    addCustomQuizItem,
+    addCustomQuizItems,
   } = useVocu();
 
   const [selectedQuestionType, setSelectedQuestionType] =
@@ -105,8 +105,7 @@ export function HomeTab() {
         const arr = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.items) ? parsed.items : [];
         if (arr.length > 0) {
           const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
-          let importedCount = 0;
-          arr.forEach((raw: Record<string, unknown>, idx: number) => {
+          const importedItems = arr.map((raw: Record<string, unknown>, idx: number) => {
             const inferredType =
               raw.type === 'word_bank_cloze' || (raw.passage && Array.isArray(raw.answers))
                 ? 'word_bank_cloze'
@@ -129,9 +128,11 @@ export function HomeTab() {
               );
             }
 
-            addCustomQuizItem(baseItem as never);
-            importedCount++;
+            return baseItem as never;
           });
+
+          addCustomQuizItems(importedItems);
+          const importedCount = importedItems.length;
 
           setImportFeedback(`成功匯入 ${importedCount} 題測驗題目！`);
           setImportText('');

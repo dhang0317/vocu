@@ -80,6 +80,7 @@ interface VocuContextType {
 
   // MCP / Custom Quiz Ingestion
   addCustomQuizItem: (item: QuizItem) => void;
+  addCustomQuizItems: (items: QuizItem[]) => void;
 
   // Settings & Data Backup
   updateSettings: (patch: Partial<UserSettings>) => void;
@@ -759,6 +760,13 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
 
   const addCustomQuizItem = useCallback((item: QuizItem) => {
     setQuizBank((prev) => [item, ...prev]);
+    saveMcpQuizzesToSubcollection([item]);
+  }, []);
+
+  const addCustomQuizItems = useCallback((items: QuizItem[]) => {
+    if (items.length === 0) return;
+    setQuizBank((prev) => [...items, ...prev]);
+    saveMcpQuizzesToSubcollection(items);
   }, []);
 
   const updateSettings = useCallback((patch: Partial<UserSettings>) => {
@@ -846,6 +854,7 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
         batchImportWords,
         recordQuizSubmission,
         addCustomQuizItem,
+        addCustomQuizItems,
         updateSettings,
         exportBackupJson,
         importBackupJson,
