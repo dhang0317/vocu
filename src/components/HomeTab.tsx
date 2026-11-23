@@ -36,6 +36,7 @@ export function HomeTab() {
     setActiveTab,
     addWordSet,
     batchImportWords,
+    addCustomQuizItem,
   } = useVocu();
 
   const [selectedQuestionType, setSelectedQuestionType] =
@@ -53,13 +54,28 @@ export function HomeTab() {
     setImportFeedback(`正在解析 ${file.name}...`);
     try {
       const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+      const isJson = file.name.toLowerCase().endsWith('.json') || file.type === 'application/json';
       const extractedText = isPdf ? await extractTextFromPdfFile(file) : await file.text();
-      const preview = parseVocabText(extractedText);
       setImportText(extractedText);
+
+      if (isJson || extractedText.trim().startsWith('[') || extractedText.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(extractedText);
+          const arr = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.items) ? parsed.items : [];
+          if (arr.length > 0) {
+            setImportFeedback(`已從 ${file.name} 辨識出 ${arr.length} 題測驗題目，請確認目標單字集後點擊「確認匯入」。`);
+            return;
+          }
+        } catch {
+          // fall through to vocab parser
+        }
+      }
+
+      const preview = parseVocabText(extractedText);
       if (preview.length > 0) {
         setImportFeedback(`已從 ${file.name} 辨識出 ${preview.length} 筆單字／片語，請確認後點擊「確認匯入」。`);
       } else {
-        setImportFeedback(`已讀取 ${file.name}，但未自動偵測到單字格式，可手動微調後匯入。`);
+        setImportFeedback(`已讀取 ${file.name}，但未自動偵測到單字或題目格式，可手動微調後匯入。`);
       }
     } catch (err) {
       setImportFeedback(`檔案解析失敗：${err instanceof Error ? err.message : String(err)}`);
@@ -68,11 +84,7 @@ export function HomeTab() {
 
   const handleHomeImportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const parsedItems = parseVocabText(importText);
-    if (parsedItems.length === 0) {
-      setImportFeedback('無法辨識出「英文單字 + 中文釋義」，請確認內容格式。');
-      return;
-    }
+    const trimmed = importText.trim();
 
     let targetId = importTargetSetId || recentSetId || wordSets[0]?.id || '';
     if (importTargetSetId === '__new__') {
@@ -84,6 +96,61 @@ export function HomeTab() {
       const created = addWordSet({ title, color: '#FFFFFF', icon: 'book' });
       targetId = created.id;
       setRecentSetId(created.id);
+    }
+
+    // Check if input is JSON quiz items
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        const arr = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.items) ? parsed.items : [];
+        if (arr.length > 0) {
+          const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
+          let importedCount = 0;
+          arr.forEach((raw: Record<string, unknown>, idx: number) => {
+            const inferredType =
+              raw.type === 'word_bank_cloze' || (raw.passage && Array.isArray(raw.answers))
+                ? 'word_bank_cloze'
+                : raw.type === 'multiple_choice_cloze' || (Array.isArray(raw.options) && raw.options.length === 4)
+                  ? 'multiple_choice_cloze'
+                  : 'letter_hint_cloze';
+
+            const baseItem: Record<string, unknown> = {
+              ...raw,
+              id: String(raw.id || `quiz-import-${Date.now()}-${idx}`),
+              setId: targetId,
+              type: inferredType,
+              createdAt: String(raw.createdAt || new Date().toISOString()),
+              source: 'mcp_agent' as const,
+            };
+
+            if (inferredType === 'multiple_choice_cloze' && Array.isArray(raw.options)) {
+              baseItem.options = raw.options.slice(0, 4).map((o: unknown, oIdx: number) =>
+                typeof o === 'string' ? { label: labels[oIdx], term: o.trim() } : o
+              );
+            }
+
+            addCustomQuizItem(baseItem as never);
+            importedCount++;
+          });
+
+          setImportFeedback(`成功匯入 ${importedCount} 題測驗題目！`);
+          setImportText('');
+          setNewSetName('');
+          setTimeout(() => {
+            setImportFeedback(null);
+            setIsImportOpen(false);
+          }, 1100);
+          return;
+        }
+      } catch {
+        // fall through to vocab parser
+      }
+    }
+
+    const parsedItems = parseVocabText(importText);
+    if (parsedItems.length === 0) {
+      setImportFeedback('無法辨識出「英文單字 + 中文釋義」或「JSON 題庫」，請確認內容格式。');
+      return;
     }
 
     const count = batchImportWords(targetId, parsedItems);
@@ -421,10 +488,10 @@ export function HomeTab() {
               </p>
               <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white cursor-pointer transition">
                 <Upload className="w-3.5 h-3.5" />
-                <span>選擇檔案（PDF / TXT / CSV）</span>
+                <span>選擇檔案（PDF / TXT / CSV / JSON）</span>
                 <input
                   type="file"
-                  accept=".pdf,.txt,.csv,.tsv,.md,application/pdf,text/plain,text/csv"
+                  accept=".pdf,.txt,.csv,.tsv,.md,.json,application/pdf,application/json,text/plain,text/csv"
                   onChange={handleHomeFileUpload}
                   className="hidden"
                 />
