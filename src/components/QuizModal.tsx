@@ -785,38 +785,68 @@ export function QuizModal() {
                       )}
                     </div>
                   )}
-                      {isAnswered && mcTwoColumn && hasMoreQuestions && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const nextIdx = maxVisibleIdx + 1;
-                            if (nextIdx < questions.length) {
-                              setMcPairIndices((prev) =>
-                                prev[0] === qIdx ? [nextIdx, prev[1]] : [prev[0], nextIdx]
-                              );
-                            }
-                          }}
-                          className="w-full py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-[#000000] font-bold text-xs transition cursor-pointer"
-                        >
-                          下一題（第 {maxVisibleIdx + 2} 題）→
-                        </button>
+                      {mcTwoColumn && (qIdx > 0 || (isAnswered && hasMoreQuestions)) && (
+                        <div className="flex items-center gap-2">
+                          {qIdx > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMcPairIndices((prev) =>
+                                  prev[0] === qIdx ? [qIdx - 1, prev[1]] : [prev[0], qIdx - 1]
+                                );
+                              }}
+                              className="px-4 py-2.5 rounded-xl bg-[#000000] border border-white/15 hover:border-white/40 text-zinc-300 hover:text-white font-semibold text-xs transition cursor-pointer"
+                            >
+                              ← 上一題
+                            </button>
+                          )}
+                          {isAnswered && hasMoreQuestions && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const nextIdx = maxVisibleIdx + 1;
+                                if (nextIdx < questions.length) {
+                                  setMcPairIndices((prev) =>
+                                    prev[0] === qIdx ? [nextIdx, prev[1]] : [prev[0], nextIdx]
+                                  );
+                                }
+                              }}
+                              className="flex-1 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-[#000000] font-bold text-xs transition cursor-pointer"
+                            >
+                              下一題（第 {maxVisibleIdx + 2} 題）→
+                            </button>
+                          )}
+                        </div>
                       )}
                       </div>
                     );
                   })}
                 </div>
 
-                {/* 單題模式作答後顯示「下一題」 */}
-                {!mcTwoColumn && isAllVisibleAnswered && !isLastQuestion && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMcCurrentIndex(Math.min(questions.length - 1, mcCurrentIndex + 1));
-                    }}
-                    className="w-full py-3.5 rounded-2xl bg-white hover:bg-zinc-200 text-[#000000] font-bold text-sm transition cursor-pointer"
-                  >
-                    下一題（{mcCurrentIndex + 2} / {questions.length}）→
-                  </button>
+                {/* 單題模式底部導覽：上一題 / 下一題 */}
+                {!mcTwoColumn && (mcCurrentIndex > 0 || (isAllVisibleAnswered && !isLastQuestion)) && (
+                  <div className="flex items-center gap-3">
+                    {mcCurrentIndex > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setMcCurrentIndex(Math.max(0, mcCurrentIndex - 1))}
+                        className="px-5 py-3.5 rounded-2xl bg-[#000000] border border-white/15 hover:border-white/40 text-zinc-300 hover:text-white font-semibold text-sm transition cursor-pointer"
+                      >
+                        ← 上一題
+                      </button>
+                    )}
+                    {isAllVisibleAnswered && !isLastQuestion && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMcCurrentIndex(Math.min(questions.length - 1, mcCurrentIndex + 1));
+                        }}
+                        className="flex-1 py-3.5 rounded-2xl bg-white hover:bg-zinc-200 text-[#000000] font-bold text-sm transition cursor-pointer"
+                      >
+                        下一題（{mcCurrentIndex + 2} / {questions.length}）→
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 {allMcAnswered && isLastQuestion && (
