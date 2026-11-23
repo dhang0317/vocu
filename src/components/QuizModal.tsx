@@ -77,6 +77,7 @@ export function QuizModal() {
   const [mcSelections, setMcSelections] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
   const [mcCurrentIndex, setMcCurrentIndex] = useState(0);
   const [mcTwoColumn, setMcTwoColumn] = useState(false);
+  const [mcPairIndices, setMcPairIndices] = useState<[number, number]>([0, 1]);
 
   // 文意字彙 (Letter Hint Cloze) 單題即時批改狀態
   const [lhCurrentIndex, setLhCurrentIndex] = useState(0);
@@ -656,15 +657,15 @@ export function QuizModal() {
           </div>
 
           {(() => {
-            const visibleIndices =
-              mcTwoColumn && mcCurrentIndex + 1 < questions.length
-                ? [mcCurrentIndex, mcCurrentIndex + 1]
-                : [mcCurrentIndex];
-            const lastVisibleIdx = visibleIndices[visibleIndices.length - 1];
+            const visibleIndices = mcTwoColumn
+              ? Array.from(new Set(mcPairIndices)).filter((idx) => idx < questions.length)
+              : [mcCurrentIndex];
+            const maxVisibleIdx = Math.max(...visibleIndices, 0);
+            const hasMoreQuestions = maxVisibleIdx + 1 < questions.length;
             const isAllVisibleAnswered = visibleIndices.every((idx) =>
               Boolean(mcSelections[String(idx)])
             );
-            const isLastQuestion = lastVisibleIdx >= questions.length - 1;
+            const isLastQuestion = !hasMoreQuestions;
 
             return (
               <div className="space-y-4">
@@ -784,24 +785,37 @@ export function QuizModal() {
                       )}
                     </div>
                   )}
+                      {isAnswered && mcTwoColumn && hasMoreQuestions && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nextIdx = maxVisibleIdx + 1;
+                            if (nextIdx < questions.length) {
+                              setMcPairIndices((prev) =>
+                                prev[0] === qIdx ? [nextIdx, prev[1]] : [prev[0], nextIdx]
+                              );
+                            }
+                          }}
+                          className="w-full py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-[#000000] font-bold text-xs transition cursor-pointer"
+                        >
+                          下一題（第 {maxVisibleIdx + 2} 題）→
+                        </button>
+                      )}
                       </div>
                     );
                   })}
                 </div>
 
-                {/* 作答後顯示「下一題 / 下一組」或「本回合成績」 */}
-                {isAllVisibleAnswered && !isLastQuestion && (
+                {/* 單題模式作答後顯示「下一題」 */}
+                {!mcTwoColumn && isAllVisibleAnswered && !isLastQuestion && (
                   <button
                     type="button"
                     onClick={() => {
-                      const step = mcTwoColumn ? 2 : 1;
-                      setMcCurrentIndex(Math.min(questions.length - 1, mcCurrentIndex + step));
+                      setMcCurrentIndex(Math.min(questions.length - 1, mcCurrentIndex + 1));
                     }}
                     className="w-full py-3.5 rounded-2xl bg-white hover:bg-zinc-200 text-[#000000] font-bold text-sm transition cursor-pointer"
                   >
-                    {mcTwoColumn
-                      ? `下一組（第 ${lastVisibleIdx + 2} 題起 / ${questions.length}）→`
-                      : `下一題（${mcCurrentIndex + 2} / ${questions.length}）→`}
+                    下一題（{mcCurrentIndex + 2} / {questions.length}）→
                   </button>
                 )}
 
