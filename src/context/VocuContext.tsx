@@ -269,6 +269,18 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
             );
             const finalCorrectLabel = matchedAfterShuffle ? matchedAfterShuffle.label : 'A';
 
+            const preShuffleTermByLabel = new Map(
+              normalizedOptions.map((o) => [o.label, o.term])
+            );
+            const rawExplanation = String(raw.explanation || '');
+            const syncedExplanation = rawExplanation.replace(
+              /\(([A-D])\)\s*/g,
+              (full, lbl: 'A' | 'B' | 'C' | 'D') => {
+                const term = preShuffleTermByLabel.get(lbl);
+                return term ? `${term} ` : full;
+              }
+            );
+
             return {
               ...raw,
               type: 'multiple_choice_cloze' as const,
@@ -277,6 +289,7 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
               targetTerm,
               options: shuffledOptions,
               correctLabel: finalCorrectLabel,
+              explanation: syncedExplanation,
               questionHash,
             };
           }
@@ -515,6 +528,18 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
           );
           const finalCorrectLabel = finalMatched ? finalMatched.label : correctLabel;
 
+          const preShuffleTermByLabel = new Map(
+            normalizedOptions.map((o) => [o.label, o.term])
+          );
+          const rawExplanation = String(raw.explanation || '');
+          const syncedExplanation = rawExplanation.replace(
+            /\(([A-D])\)\s*/g,
+            (full, lbl: 'A' | 'B' | 'C' | 'D') => {
+              const term = preShuffleTermByLabel.get(lbl);
+              return term ? `${term} ` : full;
+            }
+          );
+
           return {
             ...raw,
             type: 'multiple_choice_cloze' as const,
@@ -522,6 +547,7 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
             targetTerm: finalMatched?.term || targetTerm,
             options: shuffledOptions,
             correctLabel: finalCorrectLabel,
+            explanation: syncedExplanation,
             questionHash,
           } as QuizItem;
         }
