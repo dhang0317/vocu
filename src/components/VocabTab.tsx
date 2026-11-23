@@ -1,3 +1,4 @@
+import { parseVocabText, extractTextFromPdfFile } from '@/lib/vocabFileParser';
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -170,32 +171,7 @@ export function VocabTab() {
       .map((l) => l.trim())
       .filter(Boolean);
 
-    const parsedItems: Array<{ term: string; pos: string; definition: string }> = [];
-
-    for (const line of lines) {
-      if (line.includes('|')) {
-        const parts = line.split('|').map((p) => p.trim());
-        if (parts.length >= 3) {
-          parsedItems.push({ term: parts[0], pos: parts[1], definition: parts.slice(2).join(' ') });
-        } else if (parts.length === 2) {
-          parsedItems.push({ term: parts[0], pos: 'n.', definition: parts[1] });
-        }
-      } else if (line.includes('\t')) {
-        const parts = line.split('\t').map((p) => p.trim());
-        if (parts.length >= 3) {
-          parsedItems.push({ term: parts[0], pos: parts[1], definition: parts[2] });
-        } else if (parts.length === 2) {
-          parsedItems.push({ term: parts[0], pos: 'n.', definition: parts[1] });
-        }
-      } else if (line.includes(',')) {
-        const parts = line.split(',').map((p) => p.trim());
-        if (parts.length >= 3) {
-          parsedItems.push({ term: parts[0], pos: parts[1], definition: parts.slice(2).join(', ') });
-        } else if (parts.length === 2) {
-          parsedItems.push({ term: parts[0], pos: 'n.', definition: parts[1] });
-        }
-      }
-    }
+    const parsedItems = parseVocabText(batchText);
 
     const count = batchImportWords(selectedSet.id, parsedItems);
     if (count > 0) {
@@ -206,7 +182,27 @@ export function VocabTab() {
         setIsBatchModalOpen(false);
       }, 1100);
     } else {
-      setBatchFeedback('請確認格式：每行一筆，使用 | 或逗號分隔（例如：resilient | adj. | 具韌性的）');
+      setBatchFeedback('無法辨識出「英文單字 + 中文釋義」，請確認內容格式。');
+    }
+  };
+
+  const handleVocabFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setBatchFeedback(`正在解析 ${file.name}...`);
+    try {
+      const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+      const extractedText = isPdf ? await extractTextFromPdfFile(file) : await file.text();
+      const preview = parseVocabText(extractedText);
+      setBatchText(extractedText);
+      if (preview.length > 0) {
+        setBatchFeedback(`已從 ${file.name} 辨識出 ${preview.length} 筆單字／片語，請確認後點擊「確認匯入」。`);
+      } else {
+        setBatchFeedback(`已讀取 ${file.name}，但未自動偵測到單字格式，可手動微調後匯入。`);
+      }
+    } catch (err) {
+      setBatchFeedback(`檔案解析失敗：${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -649,9 +645,21 @@ export function VocabTab() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                請每行輸入一筆字詞，使用 <code className="text-zinc-300">|</code> 或逗號分隔「單字/片語 | 詞性 | 中文釋義」：
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  支援直接上傳檔案，或貼上多種格式（<code className="text-zinc-300">|</code>、逗號、Tab、編號清單、<code className="text-zinc-300">單字 (詞性) 中文</code> 等）：
+                </p>
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white cursor-pointer transition">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>選擇檔案（PDF / TXT / CSV）</span>
+                  <input
+                    type="file"
+                    accept=".pdf,.txt,.csv,.tsv,.md,application/pdf,text/plain,text/csv"
+                    onChange={handleVocabFileUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
               <form onSubmit={handleBatchImport} className="space-y-4">
                 <textarea
                   rows={6}
