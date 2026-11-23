@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from './firebase';
 import { WordSet, WordItem, PracticeLog, QuizItem, UserSettings } from '@/types/vocu';
 
@@ -103,6 +103,19 @@ export async function loadMcpQuizzesFromSubcollection(): Promise<QuizItem[]> {
   try {
     const colRef = collection(db, WORKSPACE_COLLECTION, DEFAULT_DOC_ID, 'quizzes');
     const snap = await getDocs(colRef);
+    const items: QuizItem[] = [];
+    snap.forEach((d) => items.push(d.data() as QuizItem));
+    return items;
+  } catch {
+    return [];
+  }
+}
+
+export async function loadMcpQuizzesBySetId(setId: string): Promise<QuizItem[]> {
+  try {
+    const colRef = collection(db, WORKSPACE_COLLECTION, DEFAULT_DOC_ID, 'quizzes');
+    const q = query(colRef, where('setId', '==', setId));
+    const snap = await getDocs(q);
     const items: QuizItem[] = [];
     snap.forEach((d) => items.push(d.data() as QuizItem));
     return items;

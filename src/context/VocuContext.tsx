@@ -21,6 +21,7 @@ import {
   loadWorkspaceFromFirestore,
   saveWorkspaceToFirestore,
   loadMcpQuizzesFromSubcollection,
+  loadMcpQuizzesBySetId,
   saveMcpQuizzesToSubcollection,
 } from '@/lib/firestoreSync';
 import { computeQuestionHash } from '@/lib/masking';
@@ -362,8 +363,22 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {}
 
+    // 1. 先只抓目前選取的單字集題目，讓使用者能立刻開始練習
+    const pFast = recentSetId ? loadMcpQuizzesBySetId(recentSetId) : Promise.resolve([]);
+    pFast
+      .then((fastItems) => {
+        if (fastItems.length > 0) {
+          setQuizBank((prev) => {
+            const byId = new Map<string, QuizItem>(prev.map((q) => [q.id, q]));
+            fastItems.forEach((q) => byId.set(q.id, q));
+            return Array.from(byId.values());
+          });
+        }
+      })
+      .finally(() => setQuizzesReady(true));
+
+    // 2. 背景再慢慢抓其餘單字集的全部題目
     const p2 = loadMcpQuizzesFromSubcollection();
-    p2.finally(() => setQuizzesReady(true));
     p2.then((subItems) => {
       if (!active || subItems.length === 0) return;
       isRemoteUpdateRef.current = true;
