@@ -83,6 +83,14 @@ export function buildLetterHintQuizSession(params: {
   const setWordIds = new Set(setWords.map((w) => w.id));
   const setWordTerms = new Set(setWords.map((w) => String(w.term || '').trim().toLowerCase()));
 
+  const isSingleWordTerm = (term?: string, pos?: string) => {
+    const t = String(term || '').trim();
+    if (!t) return false;
+    if (/\s/.test(t) || /[\/()]/.test(t)) return false;
+    if (String(pos || '').toLowerCase().includes('phr')) return false;
+    return true;
+  };
+
   let candidates = quizBank.filter(
     (q): q is LetterHintClozeQuiz =>
       q.type === 'letter_hint_cloze' &&
@@ -93,7 +101,8 @@ export function buildLetterHintQuizSession(params: {
           (q.targetTerm && setWordTerms.has(q.targetTerm.trim().toLowerCase()))
       ) &&
       !retiredHashes.has(q.questionHash) &&
-      isCleanSingleSentence(q.sentence)
+      isCleanSingleSentence(q.sentence) &&
+      isSingleWordTerm(q.targetTerm, q.pos)
   );
 
   if (candidates.length === 0) {
@@ -101,7 +110,8 @@ export function buildLetterHintQuizSession(params: {
       (q): q is LetterHintClozeQuiz =>
         q.type === 'letter_hint_cloze' &&
         !retiredHashes.has(q.questionHash) &&
-        isCleanSingleSentence(q.sentence)
+        isCleanSingleSentence(q.sentence) &&
+        isSingleWordTerm(q.targetTerm, q.pos)
     );
   }
 
