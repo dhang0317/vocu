@@ -778,6 +778,21 @@ export async function POST(req: NextRequest) {
           );
         }
 
+        // 當 AI 推入新題目時，自動將目標單字集移至首頁分界線之上（置頂）
+        const touchedSetIds = new Set(normalizedIncoming.map((q) => q.setId));
+        const promotedSets = workspace.wordSets.map((s) =>
+          touchedSetIds.has(s.id) ? { ...s, belowDivider: false } : s
+        );
+        const reorderedSets = [
+          ...promotedSets.filter((s) => touchedSetIds.has(s.id)),
+          ...promotedSets.filter((s) => !touchedSetIds.has(s.id)),
+        ];
+        await saveWorkspaceToFirestore({
+          ...workspace,
+          wordSets: reorderedSets,
+          updatedAt: new Date().toISOString(),
+        });
+
         return NextResponse.json(
           {
             jsonrpc: '2.0',
@@ -786,7 +801,7 @@ export async function POST(req: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: `成功寫入 ${normalizedIncoming.length} 題至 Vocu Firestore 題庫。`,
+                  text: `成功寫入 ${normalizedIncoming.length} 題至 Vocu Firestore 題庫，並已將單字集置於首頁分界線之上。`,
                 },
               ],
             },
@@ -820,8 +835,17 @@ export async function POST(req: NextRequest) {
           );
 
         const updatedWords = [...created, ...workspace.words];
+        // 自動將新增單字的目標單字集移至分界線之上
+        const promotedSets = workspace.wordSets.map((s) =>
+          s.id === targetSetId ? { ...s, belowDivider: false } : s
+        );
+        const reorderedSets = [
+          ...promotedSets.filter((s) => s.id === targetSetId),
+          ...promotedSets.filter((s) => s.id !== targetSetId),
+        ];
         await saveWorkspaceToFirestore({
           ...workspace,
+          wordSets: reorderedSets,
           words: updatedWords,
           updatedAt: new Date().toISOString(),
         });
@@ -834,7 +858,7 @@ export async function POST(req: NextRequest) {
               content: [
                 {
                   type: 'text',
-                  text: `成功新增 ${created.length} 筆單字至單字集 (${targetSetId})。`,
+                  text: `成功新增 ${created.length} 筆單字至單字集 (${targetSetId})，並已將該單字集置於分界線之上。`,
                 },
               ],
             },
@@ -860,6 +884,7 @@ export async function POST(req: NextRequest) {
           color,
           icon,
           createdAt: new Date().toISOString(),
+          belowDivider: false,
         };
 
         const saveRes = await saveWorkspaceToFirestore({

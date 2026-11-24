@@ -15,6 +15,8 @@ import {
   ListChecks,
   Upload,
   X,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useVocu } from '@/context/VocuContext';
 import { QuestionType } from '@/types/vocu';
@@ -35,6 +37,7 @@ export function HomeTab() {
     isCloudReady,
     setActiveTab,
     addWordSet,
+    updateWordSet,
     batchImportWords,
     addCustomQuizItems,
   } = useVocu();
@@ -280,22 +283,20 @@ export function HomeTab() {
           </button>
         </div>
 
-        {/* 最近使用的單字集選擇卡片 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {wordSets.map((set) => {
+        {/* 單字集選擇卡片：分界線之上（最新 / 置頂）與分界線之下 */}
+        {(() => {
+          const aboveSets = wordSets.filter((s) => !s.belowDivider);
+          const belowSets = wordSets.filter((s) => Boolean(s.belowDivider));
+
+          const renderSetCard = (set: (typeof wordSets)[number], isBelow: boolean) => {
             const isSelected = currentSet?.id === set.id;
             const setWords = words.filter((w) => w.setId === set.id);
-            const setWeakCount = setWords.filter(
-              (w) =>
-                analyzeWordPriority(w, practiceLogs, settings.cooldownThreshold).status ===
-                'weakness'
-            ).length;
 
             return (
-              <button
+              <div
                 key={set.id}
                 onClick={() => setRecentSetId(set.id)}
-                className={`text-left p-4 rounded-2xl border transition-all cursor-pointer ${
+                className={`text-left p-4 rounded-2xl border transition-all cursor-pointer relative ${
                   isSelected
                     ? 'bg-[#000000] border-white ring-1 ring-white/30'
                     : 'bg-[#000000]/60 border-white/10 hover:border-white/25'
@@ -309,20 +310,66 @@ export function HomeTab() {
                   >
                     <SetIcon icon={set.icon} className="w-5 h-5" />
                   </div>
-                  {isSelected && (
-                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300">
-                      目前選中
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {isSelected && (
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300">
+                        目前選中
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateWordSet(set.id, { belowDivider: !isBelow });
+                      }}
+                      title={isBelow ? '移至分界線之上' : '移至分界線之下'}
+                      className="p-1.5 rounded-lg bg-[#000000] border border-white/10 hover:border-white/40 text-zinc-400 hover:text-white transition cursor-pointer"
+                    >
+                      {isBelow ? (
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <h3 className="text-sm font-bold text-white line-clamp-1">{set.title}</h3>
                 <div className="flex items-center gap-2 mt-2 text-xs text-zinc-400">
                   <span>{setWords.length} 個字詞</span>
                 </div>
-              </button>
+              </div>
             );
-          })}
-        </div>
+          };
+
+          return (
+            <div className="space-y-4">
+              {aboveSets.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {aboveSets.map((set) => renderSetCard(set, false))}
+                </div>
+              ) : (
+                <div className="text-center py-4 rounded-2xl border border-dashed border-white/10 text-xs text-zinc-500">
+                  分界線之上目前沒有單字集（AI 新推送或點卡片右上角 ↑ 會顯示於此）
+                </div>
+              )}
+
+              {belowSets.length > 0 && (
+                <>
+                  <div className="flex items-center gap-3 py-1">
+                    <div className="h-px flex-1 bg-white/15" />
+                    <span className="text-[11px] font-medium text-zinc-500 tracking-wider">
+                      分界線（下方為收納單字集）
+                    </span>
+                    <div className="h-px flex-1 bg-white/15" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 opacity-80">
+                    {belowSets.map((set) => renderSetCard(set, true))}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })()}
 
         {/* 題型選擇器 */}
         <div>

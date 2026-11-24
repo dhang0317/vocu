@@ -55,7 +55,10 @@ interface VocuContextType {
 
   // WordSet CRUD
   addWordSet: (data: { title: string; color: string; icon: SetIconKey }) => WordSet;
-  updateWordSet: (id: string, data: { title: string; color: string; icon: SetIconKey }) => void;
+  updateWordSet: (
+    id: string,
+    data: { title?: string; color?: string; icon?: SetIconKey; belowDivider?: boolean }
+  ) => void;
   deleteWordSet: (id: string) => void;
 
   // WordItem CRUD & Batch Import
@@ -644,11 +647,20 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
   );
 
   const updateWordSet = useCallback(
-    (id: string, data: { title: string; color: string; icon: SetIconKey }) => {
+    (
+      id: string,
+      data: { title?: string; color?: string; icon?: SetIconKey; belowDivider?: boolean }
+    ) => {
       setWordSets((prev) =>
         prev.map((s) =>
           s.id === id
-            ? { ...s, title: data.title.trim(), color: data.color, icon: data.icon }
+            ? {
+                ...s,
+                ...(data.title !== undefined ? { title: data.title.trim() } : {}),
+                ...(data.color !== undefined ? { color: data.color } : {}),
+                ...(data.icon !== undefined ? { icon: data.icon } : {}),
+                ...(data.belowDivider !== undefined ? { belowDivider: data.belowDivider } : {}),
+              }
             : s
         )
       );

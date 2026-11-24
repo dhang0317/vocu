@@ -8,6 +8,7 @@ export interface WordSet {
   color: string; // Hex e.g. #7CE3B3, #F472B6, #FBBF24, #60A5FA, #A78BFA
   icon: SetIconKey;
   createdAt: string; // ISO string
+  belowDivider?: boolean; // true = 移至分界線之下（舊/較少用單字集）；false/undefined = 分界線之上（最新/常用）
 }
 
 export interface WordItem {
