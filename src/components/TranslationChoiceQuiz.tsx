@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { QuestionType, WordItem } from '@/types/vocu';
 
@@ -99,6 +99,14 @@ export function TranslationChoiceQuiz({
   const picked = chosen[index];
   const isDone = index >= questions.length;
 
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   const select = (label: string) => {
     if (picked) return;
     const opt = q.options.find((o) => o.label === label)!;
@@ -113,6 +121,11 @@ export function TranslationChoiceQuiz({
         isCorrect: opt.isCorrect,
       },
     ]);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      if (index + 1 >= questions.length) onClose();
+      else setIndex((i) => i + 1);
+    }, 1000);
   };
 
   return (
