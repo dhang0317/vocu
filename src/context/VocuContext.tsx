@@ -161,15 +161,31 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
   // Load from Cloud Firestore once on mount (saves 90%+ network traffic vs real-time onSnapshot)
   const isRemoteUpdateRef = React.useRef(false);
   const hasMountedRef = React.useRef(false);
+  // 雲端載入完成前使用者對單字集的修改（例如移到分界線下），載入後需套回，避免被雲端舊資料蓋掉而「彈回去」
+  const workspaceReadyRef = React.useRef(false);
+  const pendingSetEditsRef = React.useRef<Record<string, Partial<WordSet>>>({});
 
   useEffect(() => {
     let active = true;
     const p1 = loadWorkspaceFromFirestore();
-    p1.finally(() => setWorkspaceReady(true));
+    p1.finally(() => {
+      workspaceReadyRef.current = true;
+      setWorkspaceReady(true);
+    });
     p1.then((remote) => {
       if (!active || !remote) return;
       isRemoteUpdateRef.current = true;
-      if (Array.isArray(remote.wordSets)) setWordSets(remote.wordSets);
+      if (Array.isArray(remote.wordSets)) {
+        const pending = pendingSetEditsRef.current;
+        pendingSetEditsRef.current = {};
+        setWordSets(
+          remote.wordSets.map((s) => (pending[s.id] ? { ...s, ...pending[s.id] } : s))
+        );
+        if (Object.keys(pending).length > 0) {
+          // 有本機未同步的修改：不要跳過後續的雲端儲存
+          setTimeout(() => setWordSets((prev) => [...prev]), 150);
+        }
+      }
       if (Array.isArray(remote.words)) setWords(remote.words);
       if (Array.isArray(remote.practiceLogs)) setPracticeLogs(remote.practiceLogs);
       if (Array.isArray(remote.quizBank)) {
@@ -651,6 +667,14 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
       id: string,
       data: { title?: string; color?: string; icon?: SetIconKey; belowDivider?: boolean }
     ) => {
+      if (!workspaceReadyRef.current) {
+        const patch: Partial<WordSet> = {};
+        if (data.title !== undefined) patch.title = data.title.trim();
+        if (data.color !== undefined) patch.color = data.color;
+        if (data.icon !== undefined) patch.icon = data.icon;
+        if (data.belowDivider !== undefined) patch.belowDivider = data.belowDivider;
+        pendingSetEditsRef.current[id] = { ...pendingSetEditsRef.current[id], ...patch };
+      }
       setWordSets((prev) =>
         prev.map((s) =>
           s.id === id
@@ -669,7 +693,11 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
   );
 
   const deleteWordSet = useCallback((id: string) => {
-    setWordSets((prev) => prev.filter((s) => s.id !== id));
+    setWordSets((prev) => {
+      const remaining = prev.filter((s) => s.id !== id);
+      setRecentSetId((curr) => (curr === id ? remaining[0]?.id || '' : curr));
+      return remaining;
+    });
     setWords((prev) => prev.filter((w) => w.setId !== id));
     setPracticeLogs((prev) => prev.filter((l) => l.setId !== id));
     setQuizBank((prev) => prev.filter((q) => q.setId !== id));
@@ -713,6 +741,8 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
 
   const deleteWord = useCallback((id: string) => {
     setWords((prev) => prev.filter((w) => w.id !== id));
+    setPracticeLogs((prev) => prev.filter((l) => l.wordId !== id));
+    setQuizBank((prev) => prev.filter((q) => !('wordId' in q) || q.wordId !== id));
   }, []);
 
   const batchImportWords = useCallback(

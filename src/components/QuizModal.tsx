@@ -22,6 +22,7 @@ import {
 } from '@/lib/quizEngine';
 import { generateLetterHintMask, checkLetterHintAnswer, isNearMissSpelling } from '@/lib/masking';
 import { WeightStatusBadge } from './SetIcon';
+import { TranslationChoiceQuiz } from './TranslationChoiceQuiz';
 
 export function QuizModal() {
   const {
@@ -125,6 +126,7 @@ export function QuizModal() {
         settings,
         questionCount: 9999,
         onlyWrongWords: activeQuiz.onlyWrongWords,
+        complexity: settings.sentenceComplexity ?? 'all',
       });
       return {
         type: 'multiple_choice_cloze' as const,
@@ -139,6 +141,7 @@ export function QuizModal() {
         settings,
         questionCount: 9999,
         onlyWrongWords: activeQuiz.onlyWrongWords,
+        complexity: settings.sentenceComplexity ?? 'all',
       });
       return {
         type: 'letter_hint_cloze' as const,
@@ -150,6 +153,22 @@ export function QuizModal() {
   }, [activeQuiz, sessionSeed]);
 
   if (!activeQuiz || !sessionData) return null;
+
+  if (
+    activeQuiz.questionType === 'zh_to_en_choice' ||
+    activeQuiz.questionType === 'en_to_zh_choice'
+  ) {
+    return (
+      <TranslationChoiceQuiz
+        key={`${activeQuiz.setId}-${activeQuiz.questionType}-${sessionSeed}`}
+        mode={activeQuiz.questionType}
+        setId={activeQuiz.setId}
+        words={words}
+        onClose={closeQuiz}
+        onRecord={recordQuizSubmission}
+      />
+    );
+  }
 
   const currentSet = wordSets.find((s) => s.id === activeQuiz.setId);
 

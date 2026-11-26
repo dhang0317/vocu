@@ -294,6 +294,42 @@ export function VocabTab() {
                 <Play className="w-3.5 h-3.5 fill-[#000000]" />
                 <span>測驗文意字彙</span>
               </button>
+              <button
+                onClick={() =>
+                  startQuiz({
+                    setId: selectedSet.id,
+                    questionType: 'multiple_choice_cloze',
+                  })
+                }
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#000000] hover:bg-white/5 border border-white/15 text-xs font-semibold text-white transition cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5 text-zinc-300" />
+                <span>測驗單句克漏字</span>
+              </button>
+              <button
+                onClick={() =>
+                  startQuiz({
+                    setId: selectedSet.id,
+                    questionType: 'zh_to_en_choice',
+                  })
+                }
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#000000] hover:bg-white/5 border border-white/15 text-xs font-semibold text-white transition cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5 text-zinc-300" />
+                <span>測驗看中選英</span>
+              </button>
+              <button
+                onClick={() =>
+                  startQuiz({
+                    setId: selectedSet.id,
+                    questionType: 'en_to_zh_choice',
+                  })
+                }
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#000000] hover:bg-white/5 border border-white/15 text-xs font-semibold text-white transition cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5 text-zinc-300" />
+                <span>測驗看英選中</span>
+              </button>
             </div>
           </div>
 

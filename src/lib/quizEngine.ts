@@ -7,6 +7,7 @@ import {
   MultipleChoiceClozeQuiz,
   WordWeightStatus,
   UserSettings,
+  SentenceComplexity,
 } from '@/types/vocu';
 
 export interface WordPriorityAnalysis {
@@ -41,6 +42,30 @@ export function formatRelativeTime(isoString: string): string {
   return `${diffDays} 天前`;
 }
 
+/**
+ * 取得單句題的句子複雜度：優先使用題目上的 complexity 標記；
+ * 舊題目沒有標記時，依去除 {{BLANK}} 後的英文字數推估（<= 14 字為 simple，否則 complex）。
+ * 後端 MCP 儲存題目時也使用此函式補上標記。
+ */
+export function getSentenceComplexity(q: {
+  complexity?: SentenceComplexity;
+  sentence?: string;
+}): SentenceComplexity {
+  if (q.complexity === 'simple' || q.complexity === 'complex') return q.complexity;
+  const words = String(q.sentence || '')
+    .replace(/\{\{BLANK\}\}/g, 'x')
+    .split(/\s+/)
+    .filter(Boolean);
+  return words.length <= 14 ? 'simple' : 'complex';
+}
+
+function matchesComplexity(
+  q: { complexity?: SentenceComplexity; sentence?: string },
+  filter: 'all' | SentenceComplexity
+): boolean {
+  return filter === 'all' || getSentenceComplexity(q) === filter;
+}
+
 function isCleanSingleSentence(s: string | undefined): boolean {
   const str = String(s || '');
   if (!str.trim()) return false;
@@ -62,6 +87,7 @@ export function buildLetterHintQuizSession(params: {
   settings: UserSettings;
   questionCount?: number;
   onlyWrongWords?: boolean;
+  complexity?: 'all' | SentenceComplexity;
 }): {
   questions: LetterHintClozeQuiz[];
   selectionSummary: {
@@ -72,7 +98,7 @@ export function buildLetterHintQuizSession(params: {
     excludedDuplicateHashes: number;
   };
 } {
-  const { setId, words, quizBank, settings, questionCount = 9999 } = params;
+  const { setId, words, quizBank, settings, questionCount = 9999, complexity = 'all' } = params;
   const retiredHashes = new Set(
     Object.entries(settings.questionRatings || {})
       .filter(([, score]) => score >= 4)
@@ -97,6 +123,7 @@ export function buildLetterHintQuizSession(params: {
       (setId === 'all' || q.setId === setId) &&
       !retiredHashes.has(q.questionHash) &&
       isCleanSingleSentence(q.sentence) &&
+      matchesComplexity(q, complexity) &&
       isSingleWordTerm(q.targetTerm, q.pos)
   );
 
@@ -106,6 +133,7 @@ export function buildLetterHintQuizSession(params: {
         q.type === 'letter_hint_cloze' &&
         !retiredHashes.has(q.questionHash) &&
         isCleanSingleSentence(q.sentence) &&
+        matchesComplexity(q, complexity) &&
         isSingleWordTerm(q.targetTerm, q.pos)
     );
   }
@@ -223,6 +251,7 @@ export function buildMultipleChoiceQuizSession(params: {
   settings: UserSettings;
   questionCount?: number;
   onlyWrongWords?: boolean;
+  complexity?: 'all' | SentenceComplexity;
 }): {
   questions: MultipleChoiceClozeQuiz[];
   selectionSummary: {
@@ -233,7 +262,7 @@ export function buildMultipleChoiceQuizSession(params: {
     excludedDuplicateHashes: number;
   };
 } {
-  const { setId, words, quizBank, settings, questionCount = 9999 } = params;
+  const { setId, words, quizBank, settings, questionCount = 9999, complexity = 'all' } = params;
   const retiredHashes = new Set(
     Object.entries(settings.questionRatings || {})
       .filter(([, score]) => score >= 4)
@@ -255,7 +284,8 @@ export function buildMultipleChoiceQuizSession(params: {
       hasValid4Options(q) &&
       (setId === 'all' || q.setId === setId) &&
       !retiredHashes.has(q.questionHash) &&
-      isCleanSingleSentence(q.sentence)
+      isCleanSingleSentence(q.sentence) &&
+      matchesComplexity(q, complexity)
   );
 
   if (candidates.length === 0) {
@@ -264,7 +294,8 @@ export function buildMultipleChoiceQuizSession(params: {
         q.type === 'multiple_choice_cloze' &&
         hasValid4Options(q) &&
         !retiredHashes.has(q.questionHash) &&
-        isCleanSingleSentence(q.sentence)
+        isCleanSingleSentence(q.sentence) &&
+        matchesComplexity(q, complexity)
     );
   }
 

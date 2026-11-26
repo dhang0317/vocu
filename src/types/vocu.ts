@@ -22,7 +22,12 @@ export interface WordItem {
   lastSeenAt: string | null; // ISO string or null if never tested
 }
 
-export type QuestionType = 'word_bank_cloze' | 'letter_hint_cloze' | 'multiple_choice_cloze';
+export type QuestionType =
+  | 'word_bank_cloze'
+  | 'letter_hint_cloze'
+  | 'multiple_choice_cloze'
+  | 'zh_to_en_choice'
+  | 'en_to_zh_choice';
 
 export interface PracticeLog {
   id: string;
@@ -69,6 +74,7 @@ export interface LetterHintClozeQuiz {
   id: string;
   setId: string;
   type: 'letter_hint_cloze';
+  complexity?: SentenceComplexity; // 句子複雜度（simple 短句常用字；complex 長句／子句／進階詞彙）
   wordId: string;
   sentence: string; // Uses {{BLANK}} as placeholder for the target masked word/phrase
   targetTerm: string; // The exact surface form in the sentence (e.g., "mystery", "factors", "nowhere to be found")
@@ -91,6 +97,7 @@ export interface MultipleChoiceClozeQuiz {
   id: string;
   setId: string;
   type: 'multiple_choice_cloze';
+  complexity?: SentenceComplexity; // 句子複雜度（simple 短句常用字；complex 長句／子句／進階詞彙）
   wordId: string;
   sentence: string; // Uses {{BLANK}} as placeholder
   options: MultipleChoiceOption[]; // 4 options A-D
@@ -107,7 +114,12 @@ export type QuizItem = WordBankClozeQuiz | LetterHintClozeQuiz | MultipleChoiceC
 
 export type WordWeightStatus = 'weakness' | 'untested' | 'cooldown' | 'due_review';
 
+export type SentenceComplexity = 'simple' | 'complex';
+export type ComplexityFilter = 'all' | SentenceComplexity;
+
 export interface UserSettings {
+  sentenceComplexity?: ComplexityFilter; // 單句題型（文意字彙／單句克漏字）的句子複雜度篩選，預設 all
+  hideBelowDivider?: boolean; // true = 隱藏首頁分界線下方的收納單字集
   userName: string;
   userEmail: string;
   avatarText: string;

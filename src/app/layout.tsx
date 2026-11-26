@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Vocu — 個人英文單字與 AI 動態出題學習網站",
   description:
-    "現代極簡深色模式英文單字學習 Web App：單字集管理、作答記錄驅動的動態防重複出題、文意選填與首尾字母提示填空、MCP AI 助理題庫串接。",
+    "現代極簡深色模式英文單字學習 Web App：單字集管理、作答記錄驅動的動態防重複出題、文意選填、首尾字母提示填空、單句克漏字與看中選英／看英選中、MCP AI 助理題庫串接。",
 };
 
 export default function RootLayout({

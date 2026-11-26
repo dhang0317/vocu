@@ -13,7 +13,7 @@ import {
   INITIAL_QUIZ_BANK,
   INITIAL_USER_SETTINGS,
 } from '@/lib/seedData';
-import { analyzeWordPriority } from '@/lib/quizEngine';
+import { analyzeWordPriority, getSentenceComplexity } from '@/lib/quizEngine';
 import { computeQuestionHash } from '@/lib/masking';
 import { QuizItem } from '@/types/vocu';
 
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
               {
                 name: 'push_quiz_items',
                 description:
-                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（不限單次題數）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title、passage 含 (1) ______ ~ (10) ______、options 長度必須剛好為 10、answers 長度必須剛好為 10，且每格 answer 必填 explanation 中文翻譯與解析）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}、options 長度必須剛好為 4、correctLabel、targetTerm，且必填 explanation 包含該 sentence 的精確整句中文翻譯與四個選項的中文釋義）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}、targetTerm、pos、chineseHint，且必填 explanation 包含該 sentence 的精確整句中文翻譯與解析，僅限單字不可為片語）。重要：1) word_bank_cloze 與 multiple_choice_cloze 的所有選項皆必須來自目標單字集（setId）內的單字；2) 由於前端會自動對 multiple_choice_cloze 的選項進行隨機洗牌，explanation 解析中請直接寫出干擾選項的英文單字本身（例如「marvel 驚嘆；upset 擾亂；emphasize 強調」），切勿在 explanation 中寫死 (A)(B)(C)(D) 代號，並確保 explanation 的句意翻譯與該題的英文 sentence 完全一致，不可套用其他例句的翻譯；3) 避免在同一題中同時放入詞性相同且語意高度重疊的近義詞。',
+                  '將 AI 助理生成的全新題目寫入 Vocu Firestore 題庫（不限單次題數）。支援三種 type：1) "word_bank_cloze"（10格文意選填：需 title、passage 含 (1) ______ ~ (10) ______、options 長度必須剛好為 10、answers 長度必須剛好為 10，且每格 answer 必填 explanation 中文翻譯與解析）；2) "multiple_choice_cloze"（單句四選一：需 sentence 含 {{BLANK}}、options 長度必須剛好為 4、correctLabel、targetTerm，且必填 explanation 包含該 sentence 的精確整句中文翻譯與四個選項的中文釋義）；3) "letter_hint_cloze"（首尾字母填空：需 sentence 含 {{BLANK}}、targetTerm、pos、chineseHint，且必填 explanation 包含該 sentence 的精確整句中文翻譯與解析，僅限單字不可為片語）。重要：1) word_bank_cloze 與 multiple_choice_cloze 的所有選項皆必須來自目標單字集（setId）內的單字；2) 由於前端會自動對 multiple_choice_cloze 的選項進行隨機洗牌，explanation 解析中請直接寫出干擾選項的英文單字本身（例如「marvel 驚嘆；upset 擾亂；emphasize 強調」），切勿在 explanation 中寫死 (A)(B)(C)(D) 代號，並確保 explanation 的句意翻譯與該題的英文 sentence 完全一致，不可套用其他例句的翻譯；3) 避免在同一題中同時放入詞性相同且語意高度重疊的近義詞；4) 單句題型（multiple_choice_cloze / letter_hint_cloze）請提供 complexity 欄位標記句子複雜度：\"simple\" = 14 字以內的短句、單一子句、常用字彙；\"complex\" = 15 字以上、含從屬子句／分詞構句／被動等結構，或語境含進階詞彙。建議同一批題目 simple 與 complex 各佔約一半。',
                 inputSchema: {
                   type: 'object',
                   properties: {
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
                     items: {
                       type: 'array',
                       description:
-                        '符合 Vocu QuizItem 格式的題目陣列。注意：1) 每題（或 word_bank_cloze 的每個 answers[i]）都必須提供與該題英文 sentence 完全相符的 explanation 中文翻譯與選項中文釋義，且 explanation 中請直接列出選項英文單字（勿寫死 (A)(B)(C)(D) 代號，因前端會洗牌選項）；2) word_bank_cloze 的 options 與 answers 長度必須皆剛好為 10，multiple_choice_cloze 的 options 必須剛好為 4 筆，且所有選項都必須是目標單字集內的單字。',
+                        '符合 Vocu QuizItem 格式的題目陣列。注意：1) 每題（或 word_bank_cloze 的每個 answers[i]）都必須提供與該題英文 sentence 完全相符的 explanation 中文翻譯與選項中文釋義，且 explanation 中請直接列出選項英文單字（勿寫死 (A)(B)(C)(D) 代號，因前端會洗牌選項）；2) 單句題型每題請加上 complexity（"simple" 或 "complex"，定義見工具說明）；3) word_bank_cloze 的 options 與 answers 長度必須皆剛好為 10，multiple_choice_cloze 的 options 必須剛好為 4 筆，且所有選項都必須是目標單字集內的單字。',
                       items: { type: 'object' },
                     },
                   },
@@ -641,6 +641,24 @@ export async function POST(req: NextRequest) {
                 { headers: CORS_HEADERS }
               );
             }
+            const rawComplexity = (item as { complexity?: unknown }).complexity;
+            if (
+              rawComplexity !== undefined &&
+              rawComplexity !== 'simple' &&
+              rawComplexity !== 'complex'
+            ) {
+              return NextResponse.json(
+                {
+                  jsonrpc: '2.0',
+                  id,
+                  error: {
+                    code: -32602,
+                    message: `Pre-save validation failed (第 ${i + 1} 題): complexity 只能是 \"simple\" 或 \"complex\"。`,
+                  },
+                },
+                { headers: CORS_HEADERS }
+              );
+            }
             const sentence = String(item.sentence || '').trim();
             if (!sentence || sentence.includes('【文意選填')) {
               return NextResponse.json(
@@ -752,9 +770,20 @@ export async function POST(req: NextRequest) {
             }
           }
 
+          // 單句題型補上句子複雜度標記（AI 未提供時依字數推估）
+          const complexityPatch =
+            item.type !== 'word_bank_cloze'
+              ? {
+                  complexity: getSentenceComplexity(
+                    item as { complexity?: 'simple' | 'complex'; sentence?: string }
+                  ),
+                }
+              : {};
+
           return {
             ...item,
             ...extraWordPatch,
+            ...complexityPatch,
             setId: resolvedSetId,
             id: item.id || `quiz-mcp-${Date.now()}-${idx}`,
             questionHash:

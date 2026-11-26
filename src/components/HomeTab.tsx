@@ -353,27 +353,46 @@ export function HomeTab() {
                 </div>
               )}
 
-              {belowSets.length > 0 && (
-                <>
-                  <div className="flex items-center gap-3 py-1">
-                    <div className="h-px flex-1 bg-white/15" />
-                    <span className="text-[11px] font-medium text-zinc-500 tracking-wider">
-                      分界線（下方為收納單字集）
-                    </span>
-                    <div className="h-px flex-1 bg-white/15" />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 opacity-80">
-                    {belowSets.map((set) => renderSetCard(set, true))}
-                  </div>
-                </>
-              )}
+              {belowSets.length > 0 && (() => {
+                const isBelowHidden = Boolean(settings.hideBelowDivider);
+                return (
+                  <>
+                    <div className="flex items-center gap-3 py-1">
+                      <div className="h-px flex-1 bg-white/15" />
+                      <button
+                        id="toggle-below-divider-btn"
+                        type="button"
+                        onClick={() => updateSettings({ hideBelowDivider: !isBelowHidden })}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/15 bg-[#000000] hover:border-white/35 text-[11px] font-medium text-zinc-400 hover:text-white tracking-wider transition cursor-pointer"
+                      >
+                        {isBelowHidden ? (
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        )}
+                        <span>
+                          {isBelowHidden
+                            ? `展開收納單字集（${belowSets.length}）`
+                            : `隱藏收納單字集（${belowSets.length}）`}
+                        </span>
+                      </button>
+                      <div className="h-px flex-1 bg-white/15" />
+                    </div>
+                    {!isBelowHidden && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 opacity-80">
+                        {belowSets.map((set) => renderSetCard(set, true))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           );
         })()}
 
         {/* 題型選擇器 */}
         <div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <button
               id="select-type-word-bank"
               type="button"
@@ -469,8 +488,76 @@ export function HomeTab() {
                 </p>
               </div>
             </button>
+
+            {([
+              ['zh_to_en_choice', '看中選英', '顯示中文釋義，四選一選出正確英文單字。'],
+              ['en_to_zh_choice', '看英選中', '顯示英文單字，四選一選出正確中文釋義。'],
+            ] as const).map(([type, label, desc]) => (
+              <button
+                key={type}
+                id={`select-type-${type}`}
+                type="button"
+                onClick={() => setSelectedQuestionType(type)}
+                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3.5 ${
+                  selectedQuestionType === type
+                    ? 'bg-[#000000] border-white ring-1 ring-white/30'
+                    : 'bg-[#000000]/60 border-white/10 hover:border-white/25'
+                }`}
+              >
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                    selectedQuestionType === type
+                      ? 'bg-white text-[#000000]'
+                      : 'bg-white/5 text-zinc-400'
+                  }`}
+                >
+                  <ListChecks className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-white">{label}</span>
+                    {selectedQuestionType === type && (
+                      <CheckCircle2 className="w-4 h-4 text-zinc-300 shrink-0" />
+                    )}
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{desc}</p>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
+
+        {/* 句子複雜度（僅單句題型：文意字彙／單句克漏字） */}
+        {(selectedQuestionType === 'letter_hint_cloze' ||
+          selectedQuestionType === 'multiple_choice_cloze') && (
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs font-semibold text-zinc-400">句子複雜度</span>
+            <div className="inline-flex items-center rounded-full border border-white/15 bg-[#000000] p-0.5 text-xs font-semibold">
+              {([
+                ['all', '全部'],
+                ['simple', '簡單句'],
+                ['complex', '複雜句'],
+              ] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  id={`select-complexity-${key}`}
+                  type="button"
+                  onClick={() => updateSettings({ sentenceComplexity: key })}
+                  className={`px-4 py-1.5 rounded-full transition cursor-pointer ${
+                    (settings.sentenceComplexity ?? 'all') === key
+                      ? 'bg-white text-[#000000]'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <span className="text-[11px] text-zinc-500">
+              簡單句：短句、常用字；複雜句：長句、子句、進階詞彙
+            </span>
+          </div>
+        )}
 
         {/* 底部固定/全寬薄荷綠主按鈕「▶ 開始練習」 */}
         <div className="pt-2">
