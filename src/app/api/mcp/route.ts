@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
                     title: { type: 'string', description: '單字集名稱（例如：二段總單字）' },
                     color: {
                       type: 'string',
-                      description: '選填：標籤顏色 Hex (#7CE3B3, #F472B6, #FBBF24, #60A5FA, #A78BFA)',
+                      description: '選填：標籤顏色 Hex（介面已改為極簡黑白，預設 #FFFFFF）',
                     },
                     icon: {
                       type: 'string',
@@ -922,7 +922,7 @@ export async function POST(req: NextRequest) {
 
       if (toolName === 'create_word_set') {
         const title = String(args.title || '新單字集').trim();
-        const color = String(args.color || '#7CE3B3').trim();
+        const color = String(args.color || '#FFFFFF').trim();
         const icon = String(args.icon || 'book').trim() as
           | 'book'
           | 'graduation-cap'
