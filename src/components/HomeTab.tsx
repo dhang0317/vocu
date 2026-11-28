@@ -146,8 +146,7 @@ export function HomeTab() {
           setNewSetName('');
           setTimeout(() => {
             setImportFeedback(null);
-            setIsImportOpen(false);
-          }, 1100);
+          }, 2500);
           return;
         }
       } catch {
@@ -168,8 +167,7 @@ export function HomeTab() {
       setNewSetName('');
       setTimeout(() => {
         setImportFeedback(null);
-        setIsImportOpen(false);
-      }, 1100);
+      }, 2500);
     } else {
       setImportFeedback('匯入失敗，請檢查內容格式。');
     }
