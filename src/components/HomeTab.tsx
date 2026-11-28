@@ -51,36 +51,132 @@ export function HomeTab() {
   const [importText, setImportText] = useState('');
   const [importFeedback, setImportFeedback] = useState<string | null>(null);
 
-  const handleHomeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    setImportFeedback(`正在解析 ${file.name}...`);
-    try {
-      const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
-      const isJson = file.name.toLowerCase().endsWith('.json') || file.type === 'application/json';
-      const extractedText = isPdf ? await extractTextFromPdfFile(file) : await file.text();
-      setImportText(extractedText);
+  const extractJsonQuizItems = (rawText: string): Record<string, unknown>[] => {
+    const trimmed = rawText.trim();
+    if (!trimmed || (!trimmed.startsWith('[') && !trimmed.startsWith('{'))) return [];
 
-      if (isJson || extractedText.trim().startsWith('[') || extractedText.trim().startsWith('{')) {
-        try {
-          const parsed = JSON.parse(extractedText);
-          const arr = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.items) ? parsed.items : [];
-          if (arr.length > 0) {
-            setImportFeedback(`已從 ${file.name} 辨識出 ${arr.length} 題測驗題目，請確認目標單字集後點擊「確認匯入」。`);
-            return;
+    const collectFromParsed = (parsed: unknown): Record<string, unknown>[] => {
+      if (Array.isArray(parsed)) {
+        return parsed.filter((x): x is Record<string, unknown> => Boolean(x && typeof x === 'object'));
+      }
+      if (parsed && typeof parsed === 'object') {
+        const obj = parsed as Record<string, unknown>;
+        if (Array.isArray(obj.items)) {
+          return obj.items.filter((x): x is Record<string, unknown> => Boolean(x && typeof x === 'object'));
+        }
+        if ('type' in obj || 'sentence' in obj || 'passage' in obj) {
+          return [obj];
+        }
+      }
+      return [];
+    };
+
+    try {
+      return collectFromParsed(JSON.parse(trimmed));
+    } catch {
+      // 支援一次貼上或合併多段連續的 JSON 陣列／物件（例如 [...]\n[...]）
+      const results: Record<string, unknown>[] = [];
+      let depth = 0;
+      let start = -1;
+      let inString = false;
+      let escape = false;
+
+      for (let i = 0; i < trimmed.length; i++) {
+        const ch = trimmed[i];
+        if (inString) {
+          if (escape) {
+            escape = false;
+          } else if (ch === '\\') {
+            escape = true;
+          } else if (ch === '"') {
+            inString = false;
           }
-        } catch {
-          // fall through to vocab parser
+          continue;
+        }
+        if (ch === '"') {
+          inString = true;
+          continue;
+        }
+        if (ch === '[' || ch === '{') {
+          if (depth === 0) start = i;
+          depth++;
+        } else if (ch === ']' || ch === '}') {
+          depth--;
+          if (depth === 0 && start !== -1) {
+            try {
+              const chunk = JSON.parse(trimmed.slice(start, i + 1));
+              results.push(...collectFromParsed(chunk));
+            } catch {
+              // ignore malformed chunk
+            }
+            start = -1;
+          }
+        }
+      }
+      return results;
+    }
+  };
+
+  const handleHomeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (files.length === 0) return;
+    setImportFeedback(`正在解析 ${files.length} 個檔案...`);
+    try {
+      const mergedQuizzes: Record<string, unknown>[] = [];
+      const mergedTextParts: string[] = [];
+
+      for (const file of files) {
+        const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+        const isJson = file.name.toLowerCase().endsWith('.json') || file.type === 'application/json';
+        const extractedText = isPdf ? await extractTextFromPdfFile(file) : await file.text();
+
+        if (isJson || extractedText.trim().startsWith('[') || extractedText.trim().startsWith('{')) {
+          const items = extractJsonQuizItems(extractedText);
+          if (items.length > 0) {
+            mergedQuizzes.push(...items);
+            continue;
+          }
+        }
+        if (extractedText.trim()) {
+          mergedTextParts.push(extractedText);
         }
       }
 
-      const preview = parseVocabText(extractedText);
-      if (preview.length > 0) {
-        setImportFeedback(`已從 ${file.name} 辨識出 ${preview.length} 筆單字／片語，請確認後點擊「確認匯入」。`);
-      } else {
-        setImportFeedback(`已讀取 ${file.name}，但未自動偵測到單字或題目格式，可手動微調後匯入。`);
+      if (mergedQuizzes.length > 0 && mergedTextParts.length === 0) {
+        setImportText(JSON.stringify(mergedQuizzes, null, 2));
+        setImportFeedback(
+          `已從 ${files.length} 個檔案辨識出共 ${mergedQuizzes.length} 題測驗題目，請確認目標單字集後點擊「確認匯入」。`
+        );
+        return;
       }
+
+      if (mergedTextParts.length > 0 && mergedQuizzes.length === 0) {
+        const combinedText = mergedTextParts.join('\n');
+        setImportText(combinedText);
+        const preview = parseVocabText(combinedText);
+        if (preview.length > 0) {
+          setImportFeedback(
+            `已從 ${files.length} 個檔案辨識出共 ${preview.length} 筆單字／片語，請確認後點擊「確認匯入」。`
+          );
+        } else {
+          setImportFeedback(
+            `已讀取 ${files.length} 個檔案，但未自動偵測到單字或題目格式，可手動微調後匯入。`
+          );
+        }
+        return;
+      }
+
+      if (mergedQuizzes.length > 0 && mergedTextParts.length > 0) {
+        // 同時選到題庫 JSON 與單字檔時，合併顯示並提示
+        setImportText(JSON.stringify(mergedQuizzes, null, 2));
+        setImportFeedback(
+          `已從 ${files.length} 個檔案辨識出 ${mergedQuizzes.length} 題 JSON 題目（其餘純文字檔請切換至「匯入單字庫」分開匯入）。`
+        );
+        return;
+      }
+
+      setImportFeedback(`已讀取 ${files.length} 個檔案，但未偵測到有效內容。`);
     } catch (err) {
       setImportFeedback(`檔案解析失敗：${err instanceof Error ? err.message : String(err)}`);
     }
@@ -102,56 +198,49 @@ export function HomeTab() {
       setRecentSetId(created.id);
     }
 
-    // Check if input is JSON quiz items
-    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        const arr = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.items) ? parsed.items : [];
-        if (arr.length > 0) {
-          const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
-          const importedItems = arr.map((raw: Record<string, unknown>, idx: number) => {
-            const inferredType =
-              raw.type === 'word_bank_cloze' || (raw.passage && Array.isArray(raw.answers))
-                ? 'word_bank_cloze'
-                : raw.type === 'multiple_choice_cloze' || (Array.isArray(raw.options) && raw.options.length === 4)
-                  ? 'multiple_choice_cloze'
-                  : 'letter_hint_cloze';
+    // Check if input is JSON quiz items (supports single or multiple concatenated JSON arrays/objects)
+    const arr = extractJsonQuizItems(trimmed);
+    if (arr.length > 0) {
+      const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
+      const importedItems = arr.map((raw: Record<string, unknown>, idx: number) => {
+        const inferredType =
+          raw.type === 'word_bank_cloze' || (raw.passage && Array.isArray(raw.answers))
+            ? 'word_bank_cloze'
+            : raw.type === 'multiple_choice_cloze' || (Array.isArray(raw.options) && raw.options.length === 4)
+              ? 'multiple_choice_cloze'
+              : 'letter_hint_cloze';
 
-            const baseItem: Record<string, unknown> = {
-              ...raw,
-              id:
-                typeof raw.id === 'string' && raw.id.trim()
-                  ? raw.id.trim()
-                  : `quiz-import-${Date.now()}-${idx}`,
-              setId: targetId,
-              type: inferredType,
-              createdAt: String(raw.createdAt || new Date().toISOString()),
-              source: 'mcp_agent' as const,
-            };
+        const baseItem: Record<string, unknown> = {
+          ...raw,
+          id:
+            typeof raw.id === 'string' && raw.id.trim()
+              ? raw.id.trim()
+              : `quiz-import-${Date.now()}-${idx}`,
+          setId: targetId,
+          type: inferredType,
+          createdAt: String(raw.createdAt || new Date().toISOString()),
+          source: 'mcp_agent' as const,
+        };
 
-            if (inferredType === 'multiple_choice_cloze' && Array.isArray(raw.options)) {
-              baseItem.options = raw.options.slice(0, 4).map((o: unknown, oIdx: number) =>
-                typeof o === 'string' ? { label: labels[oIdx], term: o.trim() } : o
-              );
-            }
-
-            return baseItem as never;
-          });
-
-          addCustomQuizItems(importedItems);
-          const importedCount = importedItems.length;
-
-          setImportFeedback(`成功匯入 ${importedCount} 題測驗題目！`);
-          setImportText('');
-          setNewSetName('');
-          setTimeout(() => {
-            setImportFeedback(null);
-          }, 2500);
-          return;
+        if (inferredType === 'multiple_choice_cloze' && Array.isArray(raw.options)) {
+          baseItem.options = raw.options.slice(0, 4).map((o: unknown, oIdx: number) =>
+            typeof o === 'string' ? { label: labels[oIdx], term: o.trim() } : o
+          );
         }
-      } catch {
-        // fall through to vocab parser
-      }
+
+        return baseItem as never;
+      });
+
+      addCustomQuizItems(importedItems);
+      const importedCount = importedItems.length;
+
+      setImportFeedback(`成功匯入 ${importedCount} 題測驗題目！`);
+      setImportText('');
+      setNewSetName('');
+      setTimeout(() => {
+        setImportFeedback(null);
+      }, 2500);
+      return;
     }
 
     const parsedItems = parseVocabText(importText);
@@ -651,11 +740,12 @@ export function HomeTab() {
                 <Upload className="w-3.5 h-3.5" />
                 <span>
                   {importMode === 'words'
-                    ? '選擇檔案（PDF / TXT / CSV）'
-                    : '選擇檔案（JSON）'}
+                    ? '選擇檔案（可多選 PDF / TXT / CSV）'
+                    : '選擇檔案（可多選 JSON）'}
                 </span>
                 <input
                   type="file"
+                  multiple
                   accept={
                     importMode === 'words'
                       ? '.pdf,.txt,.csv,.tsv,.md,application/pdf,text/plain,text/csv'
