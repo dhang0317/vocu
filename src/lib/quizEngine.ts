@@ -117,7 +117,7 @@ export function buildLetterHintQuizSession(params: {
     return true;
   };
 
-  let candidates = quizBank.filter(
+  const candidates = quizBank.filter(
     (q): q is LetterHintClozeQuiz =>
       q.type === 'letter_hint_cloze' &&
       (setId === 'all' || q.setId === setId) &&
@@ -126,17 +126,6 @@ export function buildLetterHintQuizSession(params: {
       matchesComplexity(q, complexity) &&
       isSingleWordTerm(q.targetTerm, q.pos)
   );
-
-  if (candidates.length === 0) {
-    candidates = quizBank.filter(
-      (q): q is LetterHintClozeQuiz =>
-        q.type === 'letter_hint_cloze' &&
-        !retiredHashes.has(q.questionHash) &&
-        isCleanSingleSentence(q.sentence) &&
-        matchesComplexity(q, complexity) &&
-        isSingleWordTerm(q.targetTerm, q.pos)
-    );
-  }
 
   const shuffled = [...candidates].sort(() => Math.random() - 0.5).slice(0, questionCount);
 
@@ -278,7 +267,7 @@ export function buildMultipleChoiceQuizSession(params: {
     q.options.length === 4 &&
     q.options.every((o) => o && typeof o.term === 'string' && o.term.trim() !== '' && o.term.trim() !== '.');
 
-  let candidates = quizBank.filter(
+  const candidates = quizBank.filter(
     (q): q is MultipleChoiceClozeQuiz =>
       q.type === 'multiple_choice_cloze' &&
       hasValid4Options(q) &&
@@ -287,17 +276,6 @@ export function buildMultipleChoiceQuizSession(params: {
       isCleanSingleSentence(q.sentence) &&
       matchesComplexity(q, complexity)
   );
-
-  if (candidates.length === 0) {
-    candidates = quizBank.filter(
-      (q): q is MultipleChoiceClozeQuiz =>
-        q.type === 'multiple_choice_cloze' &&
-        hasValid4Options(q) &&
-        !retiredHashes.has(q.questionHash) &&
-        isCleanSingleSentence(q.sentence) &&
-        matchesComplexity(q, complexity)
-    );
-  }
 
   const shuffled = [...candidates].sort(() => Math.random() - 0.5).slice(0, questionCount);
 
