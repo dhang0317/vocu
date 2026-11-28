@@ -361,45 +361,30 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const loadedQuizSetIdsRef = React.useRef<Set<string>>(new Set());
+
   useEffect(() => {
+    if (!workspaceReady) return;
     let active = true;
-    // 若本地 24 小時內已快取子集合題庫，直接使用快取，省下每次重整下載 1,200+ 筆 Firestore 文件的流量
-    const CACHE_KEY = 'vocu_sub_quizzes_cache_v2';
-    const CACHE_TS_KEY = 'vocu_sub_quizzes_ts_v2';
-    try {
-      const ts = Number(localStorage.getItem(CACHE_TS_KEY) || '0');
-      const cachedRaw = localStorage.getItem(CACHE_KEY);
-      if (cachedRaw && Date.now() - ts < 1000 * 60 * 60 * 24) {
-        const parsed = JSON.parse(cachedRaw) as QuizItem[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setQuizBank((prev) => {
-            const map = new Map(prev.map((q) => [q.id, q]));
-            parsed.forEach((item) => map.set(item.id, item));
-            return Array.from(map.values());
-          });
-          return;
-        }
-      }
-    } catch {}
 
-    // 1. 先只抓目前選取的單字集題目，讓使用者能立刻開始練習
-    const pFast = recentSetId ? loadMcpQuizzesBySetId(recentSetId) : Promise.resolve([]);
-    pFast
-      .then((fastItems) => {
-        if (fastItems.length > 0) {
-          setQuizBank((prev) => {
-            const byId = new Map<string, QuizItem>(prev.map((q) => [q.id, q]));
-            fastItems.forEach((q) => byId.set(q.id, q));
-            return Array.from(byId.values());
-          });
-        }
-      })
-      .finally(() => setQuizzesReady(true));
+    const targetSets = settings.hideBelowDivider
+      ? wordSets.filter((s) => !s.belowDivider)
+      : wordSets;
 
-    // 2. 背景再慢慢抓其餘單字集的全部題目
-    const p2 = loadMcpQuizzesFromSubcollection();
+    const setsToFetch = targetSets.filter((s) => !loadedQuizSetIdsRef.current.has(s.id));
+    if (setsToFetch.length === 0) {
+      setQuizzesReady(true);
+      return;
+    }
+
+    setsToFetch.forEach((s) => loadedQuizSetIdsRef.current.add(s.id));
+
+    const p2 = Promise.all(setsToFetch.map((s) => loadMcpQuizzesBySetId(s.id))).then((groups) =>
+      groups.flat()
+    );
     p2.then((subItems) => {
-      if (!active || subItems.length === 0) return;
+      if (!active) return;
+      if (subItems.length === 0) return;
       isRemoteUpdateRef.current = true;
       const labels: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
       const normalizedSub = subItems.map((q) => {
@@ -597,10 +582,6 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
           questionHash,
         } as QuizItem;
       });
-      try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(normalizedSub));
-        localStorage.setItem(CACHE_TS_KEY, String(Date.now()));
-      } catch {}
       setQuizBank((prev) => {
         const map = new Map(prev.map((q) => [q.id, q]));
         normalizedSub.forEach((item) => map.set(item.id, item));
@@ -609,11 +590,13 @@ export function VocuProvider({ children }: { children: React.ReactNode }) {
       setTimeout(() => {
         isRemoteUpdateRef.current = false;
       }, 100);
+    }).finally(() => {
+      if (active) setQuizzesReady(true);
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [workspaceReady, wordSets, settings.hideBelowDivider]);
 
   useEffect(() => {
     if (!hasMountedRef.current) {
