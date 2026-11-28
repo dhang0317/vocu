@@ -429,7 +429,7 @@ export function HomeTab() {
           };
 
           return (
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[42vh] overflow-y-auto pr-1">
               {aboveSets.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {aboveSets.map((set) => renderSetCard(set, false))}
