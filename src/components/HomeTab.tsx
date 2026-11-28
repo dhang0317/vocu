@@ -646,8 +646,8 @@ export function HomeTab() {
           </div>
         )}
 
-        {/* 底部固定/全寬薄荷綠主按鈕「▶ 開始練習」 */}
-        <div className="pt-2">
+        {/* 底部固定主按鈕「▶ 開始練習」 */}
+        <div className="sticky bottom-0 z-20 -mx-5 sm:-mx-8 px-5 sm:px-8 pt-3 pb-4 bg-[#000000]/90 backdrop-blur-md border-t border-white/10">
           <button
             id="start-practice-main-btn"
             disabled={!isCloudReady}
@@ -673,12 +673,16 @@ export function HomeTab() {
             <span>
               {!isCloudReady
                 ? '雲端題庫同步中...'
-                : `開始練習（${
+                : `開始練習${currentSet ? `：${currentSet.title}` : ''}（${
                     selectedQuestionType === 'word_bank_cloze'
                       ? '文意選填 10 題'
                       : selectedQuestionType === 'multiple_choice_cloze'
                         ? '單句克漏字・無止盡'
-                        : '文意字彙・無止盡'
+                        : selectedQuestionType === 'zh_to_en_choice'
+                          ? '看中選英・無止盡'
+                          : selectedQuestionType === 'en_to_zh_choice'
+                            ? '看英選中・無止盡'
+                            : '文意字彙・無止盡'
                   }）`}
             </span>
           </button>
